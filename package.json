@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.36",
+    "@fortawesome/free-solid-svg-icons": "^5.15.4",
+    "@fortawesome/react-fontawesome": "^0.1.16",
+    "@react-icons/all-files": "^4.1.0",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
@@ -12,9 +16,14 @@
     "@types/react-dom": "^17.0.0",
     "eslint-config-airbnb": "^19.0.0",
     "react": "^17.0.2",
+    "react-content-loader": "^6.0.3",
     "react-dom": "^17.0.2",
+    "react-favicon": "^0.0.25",
+    "react-html5-camera-photo": "^1.5.5",
+    "react-modal": "^3.14.4",
     "react-scripts": "4.0.3",
     "storybook": "^6.3.12",
+    "styled-components": "^5.3.3",
     "typescript": "^4.1.2",
     "web-vitals": "^1.0.1"
   },
@@ -43,6 +52,10 @@
     ]
   },
   "devDependencies": {
+    "@types/react-html5-camera-photo": "^1.5.1",
+    "@types/react-modal": "^3.13.1",
+    "@types/styled-components": "^5.1.15",
+    "babel-plugin-styled-components": "^1.13.3",
     "prettier": "2.4.1"
   },
   "lint-staged": {
