@@ -1,81 +1,125 @@
 
 import React, { useEffect, useState } from 'react'
 import Camera, { FACING_MODES, IMAGE_TYPES } from 'react-html5-camera-photo'
-import ContentLoader from 'react-content-loader'
+import { faCoffee } from '@fortawesome/free-solid-svg-icons'
 import Modal from 'react-modal'
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCoffee } from '@fortawesome/free-solid-svg-icons'
+import Button from '../Button/index'
+import Loader from '../Loader/index'
+import Icon from '../Icon/index'
+
 
 import 'react-html5-camera-photo/build/css/index.css'
-import './styles'
+import { Card, 
+	//ModalStyle // TODO: Try it again! uwu
+} from './styles'
 
+const img = require('../../assets/Rain-1-reworked.jpg')
+const testValidationUrl = 'https://front-exercise.z1.digital/evaluations'
 
-const submitStyle = {
-	borderRadius: '15px',
-	padding: '10px',
-	color: 'white',
-	backgroundColor: '#3013b3'
+const loaderSheet = {
+	rx: 10,
+	ry: 10,
+	height: 30,
+	margin: 12,
+	width: 10,
+	config: {
+		speed: 4,
+		width: 400,
+		height: 290,
+		viewBox: '0 0 400 100',
+		backgroundColor: '#f3f3f3',
+		foregroundColor: '#ecebeb',
+	},
+	fields: [
+		{ style: 'rect', x: 10, y: 0, width: 300 },
+		{	style: 'rect', x: 10, y: 1, width: 130 },
+		{	style: 'rect', x: 10, y: 2, width: 80 },
+		{ style: 'rect', x: 58, y: 3, width: 41 },
+		{	style: 'circle', r: 40	}
+	]
+}
+
+const colors = {
+	blank: '#00000000',
+	true: '#69CC8B',
+	false: '#C00000',
+	grey: '#F3F2F4'
 }
 
 const statusColors = {
-	blank: '#00000000', // No color
-	true: '#000000',// certain green
-	false: '#000000', // certain red
+	blank: '#00000000',
+	true: '#69CC8B',
+	false: '#C00000',
+	grey: '#F3F2F4'
 }
 
 const statusIcons = {
-	true: 'AiOutlineCheckCircle',
-	false: 'icon2',//cross
+	true: faCoffee,
+	false: faCoffee,
+	lowLight: faCoffee
 }
 
-const fakeImageOrigin = 'https://www.gettyimages.es/gi-resources/images/500px/983794168.jpg'
 
-const testValidationUrl = 'https://front-exercise.z1.digital/evaluations'
+const button = {
+	take: {
+		label: 'TAKE PICTURE',
+		style: 'submitStyle'
+	},
+	retake: {
+		label: 'RETAKE PICTURE',
+		style: 'submitStyle'
+	}
+}
+
+export interface OwnProps {
+	status: 'start' | 'taking' | 'rejected'
+}
 
 const DocumentValidator: React.FC = () => {
 
 	const [data, setData] = useState()
 
-	const [errorMessage, setErrorMessage] = useState('')
+	const [action, setAction] = useState<OwnProps>({status: 'start'})
 
-	const [showCamera, setShowCamera] = useState(false)
-
-	const [showModal, setShowModal] = useState(false);
-
+	const [errorMessage, setErrorMessage] = useState('')	
 	const [requestStatus, setRequestStatus] = useState(null)
-
 	const [buttonData, setButtonData] = useState({ style: {}, label: '' })
 
-	const button = {
-		take: {
-			label: 'TAKE PICTURE',
-			style: submitStyle
-		},
-		retake: {
-			label: 'RETAKE PICTURE',
-			style: submitStyle
-		}
-	}
+	const [showCamera, setShowCamera] = useState(false)
+	const [showModal, setShowModal] = useState(false)
 
-	const status = {
+	const states = {
 		true: {
 			label: 'ACCEPTED',
 			message: 'Picture taken',
 			icon: statusIcons.true,
-			color: statusColors.true
+			color: colors.true
 		},
 		false: {
 			label: 'REJECTED',
 			message: errorMessage,
 			icon: statusIcons.false,
-			color: statusColors.false
+			color: colors.false
 		}
+
 	}
 
 	useEffect(() => {
-		setButtonData(button.take)
+		setAction({status: 'start'})
 	}, [])
+
+	useEffect(() => {
+		switch (action.status) {
+			case 'start':
+				
+				break;
+		
+			default:
+				break;
+		}
+		//setButtonData(button.take)
+	}, [action])
 
 	const validateDocument = (data: any) => {
 		var myHeaders = new Headers()
@@ -98,7 +142,7 @@ const DocumentValidator: React.FC = () => {
 	}
 
 	const handlerError = (err: any) => {
-		setButtonData(button.retake)
+		//setButtonData(button.retake)
 		setErrorMessage(err)
 		console.log('handleTakePhoto!!', err)
 	}
@@ -108,8 +152,7 @@ const DocumentValidator: React.FC = () => {
 		setData(data)
 	}
 
-	// Do stuff with the photo...
-	const handleTakePhotoAnimationDone = (camData: string) => {
+	const handleTakePhotoDone = (camData: string) => {
 		//validateDocument(camData)
 		console.log('handleTakePhotoAnimationDone', camData)
 	}
@@ -122,74 +165,92 @@ const DocumentValidator: React.FC = () => {
 		console.log('handleCameraStop')
 	}
 
-	const handleCancel = (close: boolean) => {
-		setShowModal(false)
-		console.log('handleClose!!', close)
+
+	// THE NEW FUNCTIONS!!!!!!!!!!!!!!!!!!!!!
+
+	const handleStartTakePicture = () => {
+		setShowModal(true)
+		setAction({status: 'taking'})
 	}
 
-	return (
-		<div className='flex flex-col justify-center items-center select-none min-h-screen bg-gradient-to-br from-gray-900  to-blue-700'>
-		<h1 className='text-6xl text-green-500 border-b-4 pb-4'>Scan your ID</h1>
-			<h2 className='text-2xl text-gray-300 mt-10'>
-				<p>Take a picture. It may take time to validate your personal information.</p>
-				<div style={{ padding: '50px', border: '2px solid palevioletred', width: '50%' }}>
-					<div>
-						{!showCamera && <button style={buttonData.style} onClick={(e: any) => { setShowModal(true) }}>
-							{buttonData.label}
-						</button>}
-						<div style={{ border: '2px line' }}>
-							<ContentLoader
-								speed={2}
-								width={400}
-								height={190}
-								viewBox='0 0 400 100'
-								backgroundColor='#f3f3f3'
-								foregroundColor='#ecebeb'
-							>
-								<rect x='48' y='8' rx='3' ry='3' width='88' height='6' />
-								<rect x='48' y='26' rx='3' ry='3' width='52' height='6' />
-								<rect x='0' y='56' rx='3' ry='3' width='410' height='6' />
-								<rect x='0' y='72' rx='3' ry='3' width='380' height='6' />
-								<rect x='0' y='88' rx='3' ry='3' width='178' height='6' />
-								<circle cx='20' cy='20' r='20' />
-							</ContentLoader>
+	const handleCancel = () => {
+		setShowModal(false)
+	}
 
-							<Modal
-								isOpen={showModal}
-								contentLabel="Example Modal"
-							>
-								<p>Fit your ID card inside the frame.</p>
-								<p>The picture will taken automatically</p>
-								<div style={{ border: '2px solid palevioletred', width: '80%' }}>
-									<Camera
-										idealFacingMode={FACING_MODES.ENVIRONMENT}
-										onTakePhoto={(data: string) => { handleTakePhoto(data) }}
-										onTakePhotoAnimationDone={(camData) => { handleTakePhotoAnimationDone(camData) }}
-										onCameraError={(error) => { handleCameraError(error) }}
-										imageType={'jpg'}
-										imageCompression={0.97}
-										isMaxResolution={true}
-										isImageMirror={false}
-										isSilentMode={false}
-										isDisplayStartCameraError={true}
-										isFullscreen={false}
-										sizeFactor={1}
-										onCameraStop={() => { handleCameraStop() }}
-									/>
-									{data && <img style={{ height: '30vh', width: '80%' }} src={data} alt='pinga'></img>}
-									{requestStatus === true && <button onClick={(e: any) => { handleCancel(true) }}><FontAwesomeIcon icon={faCoffee}/> REJECTED</button>}
-								</div>
-								<p><FontAwesomeIcon icon={faCoffee}/> Room lighting is to low</p>
-								<button style={submitStyle} onClick={(e: any) => { handleCancel(true) }}>CANCEL</button>
-								<button style={submitStyle} onClick={(e: any) => { handleCancel(true) }}></button>
-							</Modal>
-						</div>
-					</div>
-				</div>
+	return <>
 
-			</h2>
-		</div>
-	)
+		<h1>Scan your ID</h1>
+		<h2>Take a picture. It may take time to validate your personal information.</h2>
+
+		<Card color={colors.grey}>
+			{!showCamera && <Button type='submit' label={'TAKE PICTURE'} onClick={handleStartTakePicture}></Button>}
+			<Loader params={loaderSheet} />
+		</Card>
+
+		<Modal style={{
+			overlay: {
+				position: 'fixed',
+				top: 0,
+				left: 0,
+				right: 0,
+				bottom: 0,
+				backgroundImage: 'url('+ img +')',
+			},
+			content: {
+				backgroundImage: '../assets/Rain-1-reworked.jpg',
+				position: 'absolute',
+				top: '0px',
+				left: '0px',
+				right: '0px',
+				bottom: '0px',
+				//border: '1px solid #ccc',
+				background: '#fff',
+				overflow: 'auto',
+				WebkitOverflowScrolling: 'touch',
+				borderRadius: '4px',
+				outline: 'none',
+				padding: '20px',
+				textAlign: 'center',
+			}
+		}} isOpen={showModal}>
+			<div>				
+				<h2>Fit your ID card inside the frame.</h2>
+				<h2>The picture will taken automatically</h2>
+
+				<Card color={colors.grey}>
+
+					<Camera	idealFacingMode={FACING_MODES.ENVIRONMENT}
+						onTakePhoto={(data: string) => { handleTakePhoto(data) }}
+						onTakePhotoAnimationDone={(camData) => { handleTakePhotoDone(camData) }}
+						onCameraError={(error) => { handleCameraError(error) }}
+						imageType={'jpg'}
+						imageCompression={0.97}
+						isMaxResolution={true}
+						isImageMirror={false}
+						isSilentMode={false}
+						isDisplayStartCameraError={true}
+						isFullscreen={false}
+						sizeFactor={1}
+						onCameraStop={() => { handleCameraStop() }}
+					/>
+
+					{data && <img style={{ height: '30vh', width: '80%' }} src={data} alt='Your Picture!!!'/> }
+
+					{requestStatus === true && <button onClick={(e: any) => {
+						handleCancel() }}><Icon icon={faCoffee}/> REJECTED</button>
+					}
+
+				</Card>
+
+				<p><Icon icon={faCoffee}/> Room lighting is to low</p>
+
+				<Button label={'CANCEL'} onClick={(e: any) => { handleCancel() }}/>
+			</div>
+
+		</Modal>
+
+	</>
+	
 }
 
 export default DocumentValidator

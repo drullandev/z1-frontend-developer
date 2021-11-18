@@ -1,17 +1,17 @@
-import React from 'react';
+import React from 'react'
+import { MyApp, AppBody } from './styles'
+
 import Header from '../../components/Header'
 import DocumentValidator  from '../../components/DocumentValidator'
 
 function Main() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <Header/>
-      </header>
-      <body>
+    <MyApp>
+      <Header label='BankClient'/>
+      <AppBody>
         <DocumentValidator/>
-      </body>
-    </div>
+      </AppBody>
+    </MyApp>
   )
 }
 

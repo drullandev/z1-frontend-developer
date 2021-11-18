@@ -1,10 +1,9 @@
 
 import React from 'react'
-//import './styles'
+import { AppHeader } from  './styles'
+import { HeaderProps } from  './types'
 
-const Header: React.FC = () =>
-	<header style={{height:'100px'}}>
-		<p>BankClient</p>
-	</header>
+const Header: React.FC<HeaderProps> = ({ label }) =>
+	<AppHeader>{label}</AppHeader>
 
 export default Header
