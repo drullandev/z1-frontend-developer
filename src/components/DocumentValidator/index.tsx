@@ -10,11 +10,12 @@ import Icon from '../Icon/index'
 
 
 import 'react-html5-camera-photo/build/css/index.css'
-import { Card, 
+import {
+	Card,
 	//ModalStyle // TODO: Try it again! uwu
 } from './styles'
 
-const img = require('../../assets/Rain-1-reworked.jpg')
+//const img = require('../../assets/Rain-1-reworked.jpg')
 const testValidationUrl = 'https://front-exercise.z1.digital/evaluations'
 
 const loaderSheet = {
@@ -33,12 +34,15 @@ const loaderSheet = {
 	},
 	fields: [
 		{ style: 'rect', x: 10, y: 0, width: 300 },
-		{	style: 'rect', x: 10, y: 1, width: 130 },
-		{	style: 'rect', x: 10, y: 2, width: 80 },
+		{ style: 'rect', x: 10, y: 1, width: 130 },
+		{ style: 'rect', x: 10, y: 2, width: 80 },
 		{ style: 'rect', x: 58, y: 3, width: 41 },
-		{	style: 'circle', r: 40	}
+		{ style: 'circle', r: 40 }
 	]
 }
+
+var canvas;
+var context;
 
 const colors = {
 	blank: '#00000000',
@@ -80,9 +84,9 @@ const DocumentValidator: React.FC = () => {
 
 	const [data, setData] = useState()
 
-	const [action, setAction] = useState<OwnProps>({status: 'start'})
+	const [action, setAction] = useState<OwnProps>({ status: 'start' })
 
-	const [errorMessage, setErrorMessage] = useState('')	
+	const [errorMessage, setErrorMessage] = useState('')
 	const [requestStatus, setRequestStatus] = useState(null)
 	const [buttonData, setButtonData] = useState({ style: {}, label: '' })
 
@@ -106,15 +110,15 @@ const DocumentValidator: React.FC = () => {
 	}
 
 	useEffect(() => {
-		setAction({status: 'start'})
+		setAction({ status: 'start' })
 	}, [])
 
 	useEffect(() => {
 		switch (action.status) {
 			case 'start':
-				
+
 				break;
-		
+
 			default:
 				break;
 		}
@@ -129,6 +133,7 @@ const DocumentValidator: React.FC = () => {
 			body: data
 		}
 		fetch(testValidationUrl, myInit)
+			.then(res => res.json())
 			.then((res: any) => {
 				handlerValidated(res)
 			})
@@ -149,12 +154,16 @@ const DocumentValidator: React.FC = () => {
 
 	const handleTakePhoto = (data: any) => {
 		//setShowModal(false)
+		getImageLightness(data)
 		setData(data)
 	}
 
 	const handleTakePhotoDone = (camData: string) => {
 		//validateDocument(camData)
-		console.log('handleTakePhotoAnimationDone', camData)
+		console.log('avg ',getAverageRGB())
+		getImageLightness(camData)
+		console.log('handleTakePhotoAnimationDone')
+		//console.log('handleTakePhotoAnimationDone', camData)
 	}
 
 	const handleCameraError = (error: any) => {
@@ -170,11 +179,111 @@ const DocumentValidator: React.FC = () => {
 
 	const handleStartTakePicture = () => {
 		setShowModal(true)
-		setAction({status: 'taking'})
+		setAction({ status: 'taking' })
 	}
 
 	const handleCancel = () => {
 		setShowModal(false)
+	}
+
+
+
+	const getImageLightness = (imageSrc:any) => {
+
+		/*	var image = document.getElementById('takenPicture')
+		canvas = document.getElementById('imgCanvas')
+		context = canvas.getContext('2d')
+	  
+		drawImage(image)
+
+	var img = new Image();
+		img.onload = function() {
+		  alert(100 + 'x' + 100);
+		}
+		img.src = 'http://www.google.com/intl/en_ALL/images/logo.gif';
+		*/
+		/*
+
+		var canvas : any = document.getElementById('canvas');
+		var ctx = canvas.getContext('2d');
+		ctx.rect(10, 10, 100, 100);
+		ctx.fill();
+
+		console.log(ctx.getImageData(50, 50, 100, 100));
+*/
+		/*var img : HTMLImageElement = document.getElementById("takenPicture")
+		var colorSum = 0;
+		img.onload = function() {
+
+
+	
+			for(var x = 0, len = imageSrc.length; x < len; x+=4) {
+				r = data[x];
+				g = data[x+1];
+				b = data[x+2];
+	
+				avg = Math.floor((r+g+b)/3);
+				colorSum += avg;
+			}
+	
+			var brightness = Math.floor(colorSum / (this.width*this.height));
+			console.log('brillo pestillo', brightness);
+		}*/
+
+	}
+
+	function getAverageRGB() {
+		var colorSum = 0;
+		var imgEl : any = document.getElementById('takenPicture')
+		var blockSize = 5, // only visit every 5 pixels
+			defaultRGB = {r:0,g:0,b:0, brigth: 0}, // for non-supporting envs
+			canvas = document.createElement('canvas'),
+			context = canvas.getContext && canvas.getContext('2d'),
+			data, width, height,
+			i = -4,
+			length,
+			rgb = {r:0,g:0,b:0, bright: 0},
+			count = 0;
+	
+		if (!context) {
+			return defaultRGB;
+		}
+	
+		height = canvas.height = imgEl.naturalHeight || imgEl.offsetHeight || imgEl.height;
+		width = canvas.width = imgEl.naturalWidth || imgEl.offsetWidth || imgEl.width;
+	
+		context.drawImage(imgEl, 0, 0);
+	
+		try {
+			data = context.getImageData(0, 0, width, height);
+		} catch(e) {
+			/* security error, img on diff domain */
+			return defaultRGB;
+		}
+	
+		length = data.data.length;
+		var avg = 0
+		while ( (i += blockSize * 4) < length ) {
+			++count;
+			rgb.r += data.data[i];
+			rgb.g += data.data[i+1];
+			rgb.b += data.data[i+2];
+			avg = Math.floor((rgb.r+rgb.r+rgb.r)/3);
+			colorSum += avg
+		}
+
+		var brightness = Math.floor(colorSum / (width*height));
+	
+		// ~~ used to floor values
+		rgb.r = ~~(rgb.r/count);
+		rgb.g = ~~(rgb.g/count);
+		rgb.b = ~~(rgb.b/count);
+		rgb.bright = brightness
+	
+
+		return rgb;
+
+
 	}
 
 	return <>
@@ -194,7 +303,7 @@ const DocumentValidator: React.FC = () => {
 				left: 0,
 				right: 0,
 				bottom: 0,
-				backgroundImage: 'url('+ img +')',
+				//backgroundImage: 'url(' + img + ')',
 			},
 			content: {
 				backgroundImage: '../assets/Rain-1-reworked.jpg',
@@ -213,13 +322,20 @@ const DocumentValidator: React.FC = () => {
 				textAlign: 'center',
 			}
 		}} isOpen={showModal}>
-			<div>				
+			<div>
 				<h2>Fit your ID card inside the frame.</h2>
 				<h2>The picture will taken automatically</h2>
 
 				<Card color={colors.grey}>
-
-					<Camera	idealFacingMode={FACING_MODES.ENVIRONMENT}
+					{data
+					? <img
+						id='takenPicture'
+						style={{ maxWidth: '100%', marginBottom: '-4px' }}
+						src={data}
+						alt='Your Picture!!!'
+						/>
+					: <Camera 
+						idealFacingMode={FACING_MODES.ENVIRONMENT}
 						onTakePhoto={(data: string) => { handleTakePhoto(data) }}
 						onTakePhotoAnimationDone={(camData) => { handleTakePhotoDone(camData) }}
 						onCameraError={(error) => { handleCameraError(error) }}
@@ -232,25 +348,22 @@ const DocumentValidator: React.FC = () => {
 						isFullscreen={false}
 						sizeFactor={1}
 						onCameraStop={() => { handleCameraStop() }}
-					/>
+					  
+					  />}
 
-					{data && <img style={{ height: '30vh', width: '80%' }} src={data} alt='Your Picture!!!'/> }
-
-					{requestStatus === true && <button onClick={(e: any) => {
-						handleCancel() }}><Icon icon={faCoffee}/> REJECTED</button>
-					}
+					{requestStatus === true && <button onClick={(e: any) => {handleCancel()}}><Icon icon={faCoffee} /> REJECTED</button>}
 
 				</Card>
 
-				<p><Icon icon={faCoffee}/> Room lighting is to low</p>
+				<p><Icon icon={faCoffee} /> Room lighting is to low</p>
 
-				<Button label={'CANCEL'} onClick={(e: any) => { handleCancel() }}/>
+				<Button label={'CANCEL'} onClick={(e: any) => { handleCancel() }} />
 			</div>
 
 		</Modal>
 
 	</>
-	
+
 }
 
 export default DocumentValidator

@@ -1,3 +1,8 @@
 .react-html5-camera-photo  {
-  width: 100px!important;
+  width: auto;
+}
+
+.react-html5-camera-photo video  {
+  width: 100%;
+  margin-bottom: -4px;
 }
