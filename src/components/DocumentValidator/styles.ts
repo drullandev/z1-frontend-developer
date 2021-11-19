@@ -1,14 +1,17 @@
 import styled from 'styled-components'
 
-const color = ''
-const height = 50
-const proportion = 1.618
+interface CardProps {
+  color?: any
+  height?: number
+  proportion?: number
+}
 
-export const Card = styled.div`
+export const CardStyle = styled.div<CardProps>`
   border-radius: 38px;
-  border: 8px solid ${color};
+  border: 3px solid ${p => p.color};
   box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
-  box-shadow: 0px 4px 8px ${color};
-  width: ${proportion*height+'%'};
+  box-shadow: 0px 4px 8px ${p => p.color};
+  height:  ${p => p.height+'%'};
+  max-width: ${p => (p.height?? 10)/(p.proportion??60)+'%'};
   overflow: hidden;
 `

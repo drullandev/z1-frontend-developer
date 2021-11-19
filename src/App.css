@@ -1,8 +1,18 @@
 .react-html5-camera-photo  {
   width: auto;
+  border-radius: 0px;
 }
 
 .react-html5-camera-photo video  {
   width: 100%;
   margin-bottom: -4px;
+}
+
+.cameraModal {
+  text-align: center!important;
+  background-image: url("./assets/Rain-1-reworked.jpg")!important;
+}
+
+.white {
+  color: white;
 }

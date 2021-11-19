@@ -3,10 +3,10 @@ import React from 'react'
 import { ButtonStyle, AppLinkStyle } from './styles'
 import { ButtonProps } from './types'
 
-const MyButton: React.FC<ButtonProps> = ({ type, label, onClick }) => (
+const MyButton: React.FC<ButtonProps> = ({ disabled, type, label, onClick }) => (
 	type === 'submit'
-		? <ButtonStyle onClick={onClick}>{label}</ButtonStyle>
-		: <AppLinkStyle onClick={onClick}>{label}</AppLinkStyle>
+		? <ButtonStyle disabled={disabled} onClick={onClick}>{label}</ButtonStyle>
+		: <AppLinkStyle disabled={disabled} onClick={onClick}>{label}</AppLinkStyle>
 )
 
 
