@@ -15,3 +15,10 @@ export const CardStyle = styled.div<CardProps>`
   max-width: ${p => (p.height?? 10)/(p.proportion??60)+'%'};
   overflow: hidden;
 `
+
+export const ModalContent = styled.div`
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`

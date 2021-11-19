@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Camera, { FACING_MODES } from 'react-html5-camera-photo'
-import { faLightbulb, faCheckCircle, faTimesCircle} from '@fortawesome/free-solid-svg-icons'
+import { faLightbulb, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons'
 import Modal from 'react-modal'
 
 
@@ -14,6 +14,7 @@ import 'react-html5-camera-photo/build/css/index.css'
 
 import {
 	CardStyle,
+	ModalContent
 	//ModalStyle // TODO: Try it again! uwu
 } from './styles'
 
@@ -45,9 +46,9 @@ const loaderSheet = {
 }
 
 const videoConstraints = {
-  width: 1280,
-  height: 720,
-  facingMode: "user"
+	width: 1280,
+	height: 720,
+	facingMode: "user"
 }
 
 const colors = {
@@ -71,28 +72,23 @@ export interface OwnProps {
 }
 
 const DocumentValidator: React.FC = () => {
-  
-	const webcamRef = React.useRef(null);
-	const [data, setData] = useState(null)
-	
-	function capture() {
-		//if(!webcamRef.current) return 
-		//setData(webcamRef.current.getScreenshot())
-	}
-
 
 	const debug = true
+	
+	const webcamRef = React.useRef(null);
+	const [data, setData] = useState(null)
+
 	const [action, setAction] = useState<OwnProps>({ setStatus: 'start', data: null })
 	const [loading, setLoading] = useState(false)
 	const [cameraLoaded, setCameraLoaded] = useState(true)
-	
+
 	const [showToast, setShowToast] = useState(false)
 	const [toastIcon, setToastIcon] = useState(faLightbulb)
 	const [toastMessage, setToastMessage] = useState('')
 	const [toastColor, setToastColor] = useState('')
-	
+
 	const [cardColor, setCardColor] = useState(colors.grey)
-	
+
 	const [showModal, setShowModal] = useState(false)
 	const [showRetake, setShowRetake] = useState(false)
 
@@ -101,50 +97,45 @@ const DocumentValidator: React.FC = () => {
 	const [processMessage, setProcessMessage] = useState('')
 	const [processColor, setProcessColor] = useState('')
 
-	useEffect(()=>{
+	useEffect(() => {
 
-		if(debug) console.log('Action register changes!', action)
+		if (debug) console.log('Action register changes!', action)
 
 		setLoading(true)
-		switch(action.setStatus){
+		switch (action.setStatus) {
 
 			case 'take':
 				setShowModal(true)
-				setTimeout(() => {
-					console.log('Lanzando la llamada a la acción de hacer la foto')
-					//setAction({setStatus: 'taking'})
-					//capture()
-				}, 2000);
-			break;
+				break;
 
 			case 'taking':
-				setData(action.data)				
-			break;
+				setData(action.data)
+				break;
 
 			case 'validating':
-				var res = passRequirements('takingPicture')
-				if(res.return){
-					if(!debug) validateDocument()
-					if(debug) setAction({setStatus: res.state, data: res})
-				}else{
-					setAction({setStatus: 'rejected', data: res})
+				/*var res = passRequirements('takingPicture')
+				if (res.return) {
+					if (!debug) validateDocument()
+					if (debug) setAction({ setStatus: res.state, data: res })
+				} else {
+					setAction({ setStatus: 'rejected', data: res })
 				}
-			break;
-			
+				break;*/
+
 			case 'retake':
 				setShowToast(false)
 				setData(null)
 				setCard(action.setStatus)
 				setShowToast(false)
 				setShowRetake(false)
-			break;
+				break;
 
 			case 'rejected':
-			case 'approved':					
+			case 'approved':
 				setToast(action.data)
 				setCard(action.data)
 				setShowRetake(true)
-			break;
+				break;
 
 			case 'cancel':
 				setShowModal(false)
@@ -153,7 +144,7 @@ const DocumentValidator: React.FC = () => {
 				setShowRetake(false)
 				setShowToast(false)
 				setCard(action.data)
-			break;
+				break;
 
 			default: //XXX: Also start is default ;)
 				setShowModal(false)
@@ -165,7 +156,7 @@ const DocumentValidator: React.FC = () => {
 
 		}
 		setLoading(false)
-	},[action])
+	}, [action])
 
 	const setToast = (pars: any) => {
 		setShowToast(pars.show)
@@ -181,124 +172,35 @@ const DocumentValidator: React.FC = () => {
 		setProcessColor(pars.color)
 	}
 
-	const setCard = (state: any) => {		
+	const setCard = (state: any) => {
 		setCardColor(state.color)
 	}
 
 
 	const evCameraError = (error: any) => {
-		if(debug) console.log('evCameraError', error)
+		if (debug) console.log('evCameraError', error)
 	}
-	
+
 	const evCameraStart = () => {
+		if (debug) console.log('evCameraStart')
 		setCameraLoaded(true)
 	}
 
 	const evCameraStop = () => {
+		if (debug) console.log('evCameraStop')
 		setCameraLoaded(true)
+		//var screenshot = webcamRef.getScreenshot();
 	}
 
 	// OTHERS
 
-	/**
-	 * This function recover the RGB and LigtBright by the image related with an ID
-	 * - For this cae I want to help to avoid the unnecesary POSTS to the API service,
-	 *   where the image is being reevaluated with computational costs
-	 * TODO: Try to move to the utilery!!
-	 * @param imgId string
-	 * @param precision number
-	 * @returns rgbl
-	 */
-	const getRGBLLevels = (imgId: string, precision: number = 2) => {
 
-		if(debug) return {l:getRandomArbitrary(30, 50)}
 
-		var defPrection = 50
-		var img : any = document.getElementById(imgId)
-		var defaultRGBL = { r:0, g:0, b:0, l: 0} // for non-supporting envs
-		var canvas = document.createElement('canvas')
-		var	context = canvas.getContext && canvas.getContext('2d')
-		var	i = -4
-		var	length
-		var	rgbl = {r:0,g:0,b:0,l:0}
-		var count = 0
-		
-		if (!context) {
-			return defaultRGBL
-		}
-		
-		var	data, width, height
-		height = canvas.height = img.naturalHeight || img.offsetHeight || img.height
-		width = canvas.width = img.naturalWidth || img.offsetWidth || img.width
-		
-		context.drawImage(img, 0, 0)
-		
-		try {
-			data = context.getImageData(0, 0, width, height)
-		} catch(e) {
-			// security error, img on diff domain 
-			return defaultRGBL
-		}
-		
-		length = data.data.length
-		var avg = 0
-		var colorSum = 0
-		var blockSize = defPrection / precision
-		while ( (i += blockSize * 4) < length ) {
-			++count;
-			rgbl.r += data.data[i];
-			rgbl.g += data.data[i+1];
-			rgbl.b += data.data[i+2];
-			avg = Math.floor((rgbl.r+rgbl.r+rgbl.r)/3)
-			colorSum += avg
-		}
-
-		//var brightness = Math.floor(colorSum / (width*height))
-	
-		// ~~ used to floor values
-		rgbl.r = ~~(rgbl.r/count)
-		rgbl.g = ~~(rgbl.g/count)
-		rgbl.b = ~~(rgbl.b/count)
-		rgbl.l = Math.floor(colorSum/count/10000)	
-
-		return rgbl
-
-	}
 
 	/**
-	 * This function was performed to take the task to valuate if the image pass some requirements! ;)
-	 * TODO: Move to the utilery!!
-	 * @param camData
-	 * @returns 
-	 */
-	const passRequirements = (imgId: string = 'takingPicture') => {
-		var rgbLevels = getRGBLLevels(imgId)
-		var tooDark = rgbLevels.l < lowerLightLevelAccepted
-		if(tooDark){
-			return {
-				return: false,
-				icon: faLightbulb,
-				message: 'Your picture bright is to low',
-				color: colors.false,
-				state: 'rejected',
-				show: true,
-			}
-		}else{
-			return  {
-				return: true,
-				icon: faCheckCircle,
-				message: 'Everything is ok!',
-				color: colors.true,
-				state: 'approved',
-				show: 	true,
-			}
-		}
-	}
-
-	/**
- 	* This call allows to send the image content in order to be evaluated
- 	* @param data
- 	*/
+	  * This call allows to send the image content in order to be evaluated
+	  * @param data
+	  */
 	const validateDocument = () => {
 		var myHeaders = new Headers()
 		var myInit = {
@@ -306,7 +208,7 @@ const DocumentValidator: React.FC = () => {
 			headers: myHeaders,
 			body: data
 		}
-		fetch(testValidationUrl,myInit)
+		fetch(testValidationUrl, myInit)
 			.then(res => res.json())
 			.then((res: any) => {
 				setProcess({
@@ -343,17 +245,17 @@ const DocumentValidator: React.FC = () => {
 					state: 'rejected',
 					show: true,
 				})
-			})		
+			})
 	}
 
-	const getRandomArbitrary = (min:number, max:number) =>{
+	const getRandomArbitrary = (min: number, max: number) => {
 		return Math.random() * (max - min) + min;
 	}
-	
+
 	// WITH THE SERVICE
 
 	const callError = (err: any) => {
-		if(debug) console.log('Call error!!!', err)
+		if (debug) console.log('Call error!!!', err)
 	}
 
 	return <>
@@ -362,45 +264,46 @@ const DocumentValidator: React.FC = () => {
 		<h2>Take a picture. It may take time to validate your personal information.</h2>
 
 		<CardStyle color={colors.grey} height={60} proportion={1.3}>
-			<Button disabled={loading} type='submit' label={'TAKE PICTURE'} onClick={()=>{setAction({setStatus: 'take'})}}></Button>
-			<Webcam/>
-			<button 
-				onClick={(e)=>{e.preventDefault();capture();}}>
-				Capture</button>
+			<Button disabled={loading} type='submit' label={'TAKE PICTURE'} onClick={() => { setAction({ setStatus: 'take' }) }}></Button>
 			<Loader params={loaderSheet} />
 		</CardStyle>
 
 		<Modal
-		  className='cameraModal'
-		  style={{
-			  overlay: {
-				  position: 'fixed',
-				  top: 0,
-				  left: 0,
-				  right: 0,
-				  bottom: 0,
-				  //backgroundImage: 'url(' + img + ')',
-			  },
-			  content: {
-			  	backgroundImage: '../assets/Rain-1-reworked.jpg',
-			  	position: 'absolute',
-			  	top: '0px',
-			  	left: '0px',
-			  	right: '0px',
-			  	bottom: '0px',
-			  	//border: '1px solid #ccc',
-			  	background: '#fff',
-			  	overflow: 'auto',
-			  	WebkitOverflowScrolling: 'touch',
-			  	borderRadius: '4px',
-			  	outline: 'none',
-			  	padding: '20px',
-			  	textAlign: 'center',
-			  }
-		  }}
-		  isOpen={showModal}>
+			className='cameraModal'
+			style={{
+				overlay: {
+					position: 'fixed',
+					top: 0,
+					left: 0,
+					right: 0,
+					bottom: 0,
+					//backgroundImage: 'url(' + img + ')',
+				},
+				content: {
+					backgroundImage: '../assets/Rain-1-reworked.jpg',
+					position: 'absolute',
+					top: '0px',
+					left: '0px',
+					right: '0px',
+					bottom: '0px',
+					//border: '1px solid #ccc',
+					background: '#fff',
+					overflow: 'auto',
+					WebkitOverflowScrolling: 'touch',
+					borderRadius: '4px',
+					outline: 'none',
+					padding: '20px',
+					textAlign: 'center',
+				}
+			}}
+			isOpen={showModal}>
 
-			<div>
+{/*text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center; */}
+
+			<ModalContent>
 
 				<h2 className='white'>Fit your ID card inside the frame.</h2>
 				<h2 className='white'>The picture will taken automatically</h2>
@@ -409,43 +312,28 @@ const DocumentValidator: React.FC = () => {
 
 					{data
 						? <img
-								id='takingPicture'
-								style={{ maxWidth: '100%', marginBottom: '-4px' }}
-								src={data}
-								alt='Your Document Picture!!!'
-							/>
+							id='takingPicture'
+							style={{ maxWidth: '100%', marginBottom: '-4px' }}
+							src={data}
+							alt='Your Document Picture!!!'
+						/>
 						: cameraLoaded
-							? <Camera 
-									idealFacingMode={FACING_MODES.ENVIRONMENT}
-									onTakePhoto={(data: string) => { setAction({setStatus: 'taking', data: data}) }}
-									onTakePhotoAnimationDone={(data: string) => { setAction({setStatus: 'validating', data: 'takingPicture'}) }}
-									onCameraError={(error) => { evCameraError(error) }}
-									imageType={'jpg'}
-									imageCompression={0.97}
-									isMaxResolution={true}
-									isImageMirror={false}
-									isSilentMode={false}
-									isDisplayStartCameraError={true}
-									isFullscreen={false}
-									sizeFactor={1}
-									onCameraStop={() => { evCameraStop() }}					  
-									onCameraStart={() => { evCameraStart() }}			
-								/>
+							? <Webcam/>
 							: <Loader params={loaderSheet} />
 					}
 
 
 				</CardStyle>
-				
-				{showRetake && <Button disabled={loading} type='submit' label={'RETAKE PICTURE'} onClick={(e: any)=> {setAction({setStatus: 'retake', data: ''})}}></Button>}					
-					
-				{showToast && <Toast icon={toastIcon} message={toastMessage} color={toastColor} height={23} proportion={324}/>}
 
-				{showProcess && <Toast icon={processIcon} message={processMessage} color={processColor} height={23} proportion={324}/>}
+				{showRetake && <Button disabled={loading} type='submit' label={'RETAKE PICTURE'} onClick={(e: any) => { setAction({ setStatus: 'retake', data: '' }) }}></Button>}
 
-				<Button disabled={loading} label={'CANCEL'} onClick={(e: any) => { setAction({setStatus: 'cancel', data:{ color: colors.grey }})}} />
+				{showToast && <Toast icon={toastIcon} message={toastMessage} color={toastColor} height={23} proportion={324} />}
 
-			</div>
+				{showProcess && <Toast icon={processIcon} message={processMessage} color={processColor} height={23} proportion={324} />}
+
+				<Button disabled={loading} label={'CANCEL'} onClick={(e: any) => { setAction({ setStatus: 'cancel', data: { color: colors.grey } }) }} />
+
+			</ModalContent>
 
 		</Modal>
 
