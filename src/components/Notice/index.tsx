@@ -2,6 +2,7 @@ import React from 'react'
 import { NoticeStyle } from './styles'
 import { NoticeProps } from './types'
 import Icon from '../Icon/index'
+import { faCoffee } from '@fortawesome/free-solid-svg-icons'
 
 /**
  * A simple notice component
@@ -12,7 +13,7 @@ import Icon from '../Icon/index'
 const MyNotice: React.FC<NoticeProps> = ({ params  }) =>{
 
 	return <NoticeStyle show={params.show}>
-		<Icon color={params.color} icon={params.iconNotice}/> {params.message}
+		<Icon color={params.color} icon={params.iconNotice ?? faCoffee}/> {params.message}
 	</NoticeStyle>
 
 }

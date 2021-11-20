@@ -2,6 +2,7 @@ import React from 'react'
 import { ToastStyle } from './styles'
 import { ToastProps } from './types'
 import Icon from '../Icon/index'
+import { faCoffee } from '@fortawesome/free-solid-svg-icons'
 
 /**
  * This is a very simple toast under construction...
@@ -11,7 +12,7 @@ import Icon from '../Icon/index'
  */
 const MyToast: React.FC<ToastProps> = ({ params  }) =>
 	 <ToastStyle show={params.show} color={`${params.color}`}>
-		<Icon icon={params.iconToast} /> {params.label}
+		<Icon icon={params.iconToast ?? faCoffee} /> {params.label}
 	</ToastStyle>
 
 export default MyToast

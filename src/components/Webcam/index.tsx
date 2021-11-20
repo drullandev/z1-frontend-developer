@@ -83,7 +83,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 				expired()
 				clearTimeout(repeater)
 			}else {
-				console.log('Taking pucture...')
+				console.log('Taking new picture...')
 				takeCapture()
 				let at = attempts+1
 				setAttempts(at)
