@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 
-export const AppHeader = styled.header`
+export const AppHeader = styled.div`
   background-color: #ffffff;
   text-align: left;
   display: flex;

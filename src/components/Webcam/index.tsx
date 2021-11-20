@@ -12,7 +12,7 @@ const debug = true
 
 const maxAttempts = 10 
 const attemptsInterval = 1000
-const startTimeout = 5000
+const startTimeout = 3000
 
 const options = ['bright']
 const lowestLightLevelAccepted = 40
@@ -79,7 +79,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 		var repeater = setTimeout(() => {
 			//if (debug) console.log('Capture made each ' + (attemptsInterval / 1000) + ' seconds until ' + ((attemptsInterval / 1000) * maxAttempts) + ' !!! ' + Date.now())
 			if ( attempts === maxAttempts) {
-				console.log('Expire; many attempts /ª\\ ')
+				console.log('Expire; many attempts /ï¿½\\ ')
 				expired()
 				clearTimeout(repeater)
 			}else {
@@ -150,7 +150,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 					label: 'REJECTED',
 					message: 'Room lighting is to low',
 					color: colors.bulb,
-					gbColor: colors.true,
+					bgColor: colors.true,
 					iconToast: faLightbulb,
 					iconNotice: faLightbulb,
 				}
@@ -168,7 +168,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 					label: 'ACCEPTED',
 					message: 'Your light is accepted...',// TODO: Is not under control!....
 					color: colors.true,
-					gbColor: colors.true,
+					bgColor: colors.true,
 					iconToast: faCheckCircle,
 					iconNotice: faCheckCircle,
 				}
@@ -186,7 +186,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 				label: 'ACCEPTED',
 				message: 'Your image has a card...',// TODO: Is not under control!....
 				color: colors.true,
-				gbColor: colors.true,
+				bgColor: colors.true,
 				iconToast: faCheckCircle,
 				iconNotice: faCheckCircle,
 			}
