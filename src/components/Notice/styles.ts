@@ -7,7 +7,7 @@ interface ToastProps {
   //proportion: number
 }
 
-export const ToastStyle = styled.div<ToastProps>`
+export const NoticeStyle = styled.div<ToastProps>`
   border-radius: 38px;
   box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
   box-shadow: 0px 4px 8px ${p => p.color ?? 'red'};
