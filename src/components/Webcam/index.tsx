@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { faCoffee, faLightbulb, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
 import { getRandomArbitrary, getRGBLLevels, colors } from '../../utils/CoreUtils'
 import { WebcamCaptureProps } from './types'
@@ -17,7 +17,7 @@ const startTimeout = 5000
 const options = ['bright']
 const lowestLightLevelAccepted = 40
 
-const imageContainerId = 'captureImg'
+const imageContainerId = 'captureImgRef'
 
 const videoConstraints = { 
 	facingMode: 'user'
@@ -32,12 +32,14 @@ const videoConstraints = {
 const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loader }) => {
 
 	const webcamRef = useRef<Webcam>(null)
-	const captureImg = useRef<any>()
+	const captureImgRef = useRef<any>()
+	const captureCanvasRef = useRef<any>()
 	
 	const [attempts, setAttempts] = useState(0)
 	const [capturing, setCapturing] = useState(false)
 
 	const [capture, setCapture] = useState<any>()
+	const [retry, setRetry] = useState('')
 	const [evalutaing, setEvaluating] = useState(false)
 
 	const [showCamera, setShowCamera] = useState(true)
@@ -45,35 +47,26 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 
 	const [showRetake, setShowRetake] = useState(false)
 
+	setTimeout(() => {setCapturing(true)}, startTimeout)
+	
 	useEffect(() => {
-		setTimeout(() => setCapturing(true), startTimeout)
-		setCapturing(true)
-	}, [restart])
+		capturesLoop()
+	}, [webcamRef])
 
-	useEffect(() => {
-		if(debug)
-			takeCapture()
-		else
-			capturesLoop()
-	}, [capturing])
-
-	// Evaluate capture
-	useEffect(() => {
-		if(!capture) return
-		console.log('Evaluating capture!', capture)
-		captureImg.current.src = capture
-		passRequirements(imageContainerId)
-	}, [capture])
-
-	// Take a new capture and set the capture data
-	const takeCapture = () => {
-		const imageSrc = webcamRef.current as Webcam		
-		console.log('capture', imageSrc.getScreenshot())		
-		setCapture(imageSrc.getScreenshot())
-	}
+	const takeCapture = useCallback(() => {
+		let imageSrc = webcamRef.current as Webcam		
+		var screenShot = imageSrc.getScreenshot()
+		if(screenShot){
+			setCapture(imageSrc.getScreenshot())
+		}else{
+			let now = Date.now().toString()
+			setRetry(now)
+		}
+	},[webcamRef, setCapture])
 
 	// Loop the captures until a acceptable one!
 	const capturesLoop = () => {
+		console.log('I capture loop picture')
 		var repeater = setTimeout(() => {
 			if (debug) console.log('Capture made each ' + (attemptsInterval / 1000) + ' seconds until ' + ((attemptsInterval / 1000) * maxAttempts) + ' !!! ' + Date.now())
 			if (attempts === maxAttempts) {
@@ -86,6 +79,13 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 			return () => clearTimeout(repeater)
 		}, attemptsInterval)
 	}
+
+	// Evaluate capture
+	useEffect(() => {
+		if(!capture) return
+		console.log('Evaluating capture!')
+		passRequirements(imageContainerId)
+	}, [capture])
 
 	// The capture attemps has end without a good shot taken!	 
 	const expired = () => {
@@ -110,20 +110,10 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 		setShowRetake(true)
 	}
 
-	/**
-	 * Not running well here o.o TODO see why??
-	 * @returns 
-	 */
 	const sleep = async (ms: number) => {
 		return new Promise(resolve => setTimeout(resolve, ms));
 	}
 
-	/**
-	 * This function was performed to take the task to valuate if the image pass some requirements! ;)
-	 * TODO: Move to the utilery!!
-	 * @param camData
-	 * @returns 
-	 */
 	const passRequirements = (containerId: string) => {
 		if (options.includes('bright')) {
 			setAction(getTooDark(containerId))
@@ -134,8 +124,8 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 	}
 
 	const getTooDark = (containerId: string) => {
-		var bright = getBright(containerId, true)
-		console.log('bright', bright)
+		var bright = getBright(true)
+		console.log('bright', bright, bright < lowestLightLevelAccepted)
 		var tooDark = bright < lowestLightLevelAccepted
 		if (tooDark) {
 			return {
@@ -189,52 +179,64 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 		}
 	}
 
-	const getBright = (img: any, debug: boolean = false) => {
+	const getBright = (debug: boolean = false) => {		
+		
+		var webcam: any = webcamRef.current
+		var canvas = webcam.canvas
+		var context = webcam.context
+		var data, width, height
+			width = canvas.width = webcam.width
+			height = canvas.height = webcam.height
 
-		console.log('img', img)
 
-		if (debug) return { l: getRandomArbitrary(30, 50) }
+	data = context.getImageData(0, 0, width, height)
+		console.log(data)
 
-		var img: any = document.getElementById(imageContainerId)
-		console.log('img', img)
-
-		var canvas: any = document.createElement('canvas')
+		var canvas: any = captureCanvasRef.current
 		var context: any = canvas.getContext && canvas.getContext('2d')
 
-		var data, width, height
-		width = canvas.height = img.naturalHeight || img.offsetHeight || img.height
-		height = canvas.width = img.naturalWidth || img.offsetWidth || img.width
+		return 10
+/*
 
-		context.drawImage(img, 0, 0)
-
-		data = context.getImageData(0, 0, width, height)
 
 		var res = getRGBLLevels(data.data, 2, true)
 
 		return res.l
-
+*/
 	}
 
 	return <>
 		<div>
 			<div className='MyWebcam'>
-				<img
-					ref={captureImg}
-					style={{ maxWidth: '100%', marginBottom: '-4px', visibility: showCapture ? 'visible' : 'hidden' }}
-					alt='Your Capture!!!'
-				/>
-				<Loader params={loader} />
-				<Webcam
+
+				<canvas	ref={captureCanvasRef}>
+					<img
+						ref={captureImgRef}
+						style={{
+							maxWidth: '100%',
+							marginBottom: '-4px',
+							visibility: showCapture ? 'visible' : 'hidden'
+						}}
+						src={capture}
+						alt='Your Capture!!!'
+					/>
+				</canvas>
+				{attempts === 0 && <Loader params={loader} />}
+				{showCamera && <Webcam
 					ref={webcamRef}
-					style={{ maxWidth: '100%', marginBottom: '-4px', display: showCamera ? 'in-line' : 'none' }}
+					style={{
+						maxWidth: '100%',
+						marginBottom: '-4px',
+						display: showCamera ? 'in-line' : 'none'
+					}}
 					audio={false}
 					screenshotFormat='image/jpeg'
 					videoConstraints={videoConstraints}
-				/>
+				/>}
 			</div>
 		</div>
 	</>
 
-} /* , display: capture ? 'in-line' : 'none' */
+}
 
 export default WebcamCapture
