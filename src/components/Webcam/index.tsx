@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { faCoffee, faLightbulb, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
+import { faCoffee, faLightbulb, faCheckCircle, faCircle } from '@fortawesome/free-solid-svg-icons'
 
 import { getBright } from '../../utils/CoreUtils'
 
@@ -43,39 +43,48 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, reload }) => {
 		setLoading(true)
 	}, [])
 
+	
 	useEffect(() => {
-		repeatPicture()
+		launchCapture()
 	}, [capture, reload])
 
-	const repeatPicture = () => {
+	const launchCapture = () => {
 
 		var repeater = setTimeout(() => {
 
 			if (debug) console.log('Capture made each ' + (interval / 1000) + ' seconds until ' + ((interval / 1000) * maxAttempts) + ' !!! ' + Date.now())
 
 			if (attempts === maxAttempts) {
+				
+				clearTimeout(repeater)
 
 				setAction({
 					setStatus: 'expired',
 					data: {
 						icon: faCoffee,
-						message: 'The quantity of times required to validate a capture has expired!!',
+						message: 'Expired oportunities!!',
 						show: 'in-line',
-						color: 'red'
+						color: 'red',
+						label: 'REJECTED',
+						iconToast: faCoffee,
+						iconNotice: faCoffee,
 					}
-				})
-				clearTimeout(repeater)
-				setAttempts(0)
+				})	
+
 				setLoading(false)
 				setShowRetake(true)
 
+				setAttempts(0)
+				
 			} else {
 
-				let at = attempts
 				const imageSrc = webcamRef.current as Webcam
+				passRequirements(imageContainerId, launchCapture)
 				setCapture(imageSrc.getScreenshot())
-				var req = passRequirements(imageContainerId, repeatPicture)
-				console.log('req', req)
+
+
+				
+				let at = attempts
 				setAttempts(++at)
 
 			}
@@ -94,7 +103,8 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, reload }) => {
 	 */
 	const passRequirements = (containerId: string, repeater: any) => {
 		//if(options.indexOf('bright')){
-		return getTooDark(containerId, repeater)
+		setAction(getTooDark(containerId, repeater))
+
 		//}		
 	}
 
@@ -103,33 +113,37 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, reload }) => {
 		var bright = getBright(containerId, true)
 		var tooDark = bright < lowerLightLevelAccepted
 		if (tooDark) {
-			setAction({
+			return {
 				setStatus: 'error',
 				data: {
 					return: false,
-					faicon: faLightbulb,
+					show: true,
+					rgbl: bright,
+					state: 'rejected',
+					label: 'REJECTED',
 					message: 'Room lighting is to low',
 					color: colors.false,
-					state: 'rejected',
-					show: true,
-					rgbl: bright
+					gbColor: colors.true,
+					iconToast: faLightbulb,
+					iconNotice: faLightbulb,
 				}
-			})
-			return true
+			}
 		} else {
-			setAction({
+			return {
 				setStatus: 'accepted',
 				data: {
 					return: true,
-					faicon: faCheckCircle,
-					message: 'Everything is ok!',
-					color: colors.true,
-					state: 'accepted',
 					show: true,
-					rgbl: bright
+					rgbl: bright,
+					state: 'accepted',
+					label: 'ACCEPTED',
+					message: 'Your image is accepted...',// TODO: Is not under control!....
+					color: colors.true,
+					gbColor: colors.true,
+					iconToast: faCircle,
+					iconNotice: faCircle,
 				}
-			})
-			clearTimeout(repeater)
+			}
 		}
 	}
 
@@ -138,10 +152,12 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, reload }) => {
 			<div className="MyWebcam">
 				<img
 					id={imageContainerId}
-					style={{ maxWidth: '100%', marginBottom: '-4px' }}
-					src={capture}
+					style={{ maxWidth: '100%', marginBottom: '-4px', visibility: true ? 'visible' : 'hidden' }}
 					alt='Your Document Picture!!!'
-				/> <Webcam
+					src={capture ?? '../assets/ccard.jpg' }
+				/>
+				<Webcam
+					style={{ maxWidth: '100%', marginBottom: '-4px', visibility: true ? 'visible' : 'hidden' }}
 					audio={false}
 					ref={webcamRef}
 					screenshotFormat="image/jpeg"

@@ -12,7 +12,7 @@ import Icon from '../Icon/index'
 const MyNotice: React.FC<NoticeProps> = ({ params  }) =>{
 
 	return <NoticeStyle show={params.show} color={`${params.color}`}>
-		<Icon icon={params.faicon}/> {params.message}
+		<Icon icon={params.iconNotice}/> {params.message}
 	</NoticeStyle>
 
 }

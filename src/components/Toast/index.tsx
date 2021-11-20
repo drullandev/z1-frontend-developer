@@ -11,7 +11,7 @@ import Icon from '../Icon/index'
  */
 const MyToast: React.FC<ToastProps> = ({ params  }) =>
 	 <ToastStyle show={params.show} color={`${params.color}`}>
-		<Icon icon={params.faicon} /> {params.message}
+		<Icon icon={params.iconToast} /> {params.label}
 	</ToastStyle>
 
 export default MyToast

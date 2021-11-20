@@ -1,6 +1,7 @@
 .MyWebcam  {
   width: auto;
   border-radius: 0px;
+  max-width: 560px;
 }
 
 .MyWebcam video  {
@@ -10,7 +11,7 @@
 
 .cameraModal {
   text-align: center!important;
-  background-image: url('./assets/Rain-1-reworked.jpg')!important;
+  background-image: url('https://i.pinimg.com/750x/6c/f1/1f/6cf11fd9a65e7af45a9698fdecb29a9e.jpg')!important;
 }
 
 .white {

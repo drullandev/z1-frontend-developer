@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import Modal from 'react-modal'
 
-import { faCoffee } from '@fortawesome/free-solid-svg-icons'
+import { faCoffee, faCheckCircle, faTimes } from '@fortawesome/free-solid-svg-icons'
 
 import Button from '../Button/index'
 import Loader from '../Loader/index'
@@ -14,7 +14,7 @@ import { ModalStyle, CardStyle, LoaderStyle, ModalContent } from './styles'
 
 
 const debug = true
-	
+
 const testValidationUrl = 'https://front-exercise.z1.digital/evaluations'
 
 const colors = {
@@ -34,10 +34,10 @@ const statusIcons = {
 
 export interface OwnProps {
 	setStatus:
-		'start' |
-		'take' | 'retake' | 'taking' | 'expired' |
-		'validating' | 'error' | 'accepted' | 
-		'rejected' | 'approved' | 'cancel' | string,
+	'start' |
+	'take' | 'retake' | 'taking' | 'expired' |
+	'validating' | 'error' | 'accepted' |
+	'rejected' | 'approved' | 'cancel' | string,
 	data?: any
 }
 
@@ -46,59 +46,59 @@ const DocumentValidator: React.FC = () => {
 	//const webcamRef = React.useRef(null)
 	const [data, setData] = useState(null)
 
-	const [action, setAction] = useState<OwnProps>({ setStatus: 'start'})
+	const [action, setAction] = useState<OwnProps>({ setStatus: 'start' })
 	const [loading, setLoading] = useState(false)
 
-	const [card, setCard] = useState<any>({message: '', icon: faCoffee, return: true, show: 'none'})	
-	const [notice, setNotice] = useState<any>({message: '', icon: faCoffee, return: true, show: 'none'})	
-	const [toast, setToast] = useState<any>({message: '', icon: faCoffee, return: true, show: 'none'})
+	const [card, setCard] = useState<any>({ message: '', icon: faCoffee, return: true, show: 'none' })
+	const [notice, setNotice] = useState<any>({ message: '', icon: faCoffee, return: true, show: 'none' })
+	const [toast, setToast] = useState<any>({ message: '', icon: faCoffee, return: true, show: 'none' })
 
 	const [showModal, setShowModal] = useState(false)
 	const [showRetake, setShowRetake] = useState(false)
 
 	const [reload, setReload] = useState(0)
-	
+
 	useEffect(() => {
 
 		if (debug) console.log('Action register changes!', action)
 
 		setLoading(true)
-		
+
 		setCard(action.data)
 		setToast(action.data)
 		setNotice(action.data)
-		
+
 		switch (action.setStatus) {
 
 			case 'taking':
-				// Show the Webcam capturing modal windows to take the picture...
 				setShowModal(true)
-			break
+				break
 
 			case 'expired':
-				// The camera timeout to take a good picture has expired...
+				validateDocument()
 				setShowRetake(true)
-			break
+				break
 
 			case 'error':
 				setShowRetake(true)
-			break
+				break
 
 			case 'retake':
 				setData(null)
-				setShowRetake(false)
 				let rel = reload
 				setReload(++rel)
-			break
-				
+				setShowRetake(false)
+				break
+
 			case 'accepted':
 				// TODO: For now you must get to validate against the service (debug === false)!!!!
-			break
+				//setAction({setStatus: 'validating', data: data})
+				break
 
 			case 'validating':
 				// TODO: For now you must get to validate against the service (debug === false)!!!!
 				//setCard(action.data)
-				
+
 				//var res = passRequirements('takingPicture')
 				//if (res.return) {
 				//	if (!debug) validateDocument()
@@ -107,29 +107,29 @@ const DocumentValidator: React.FC = () => {
 				//	setAction({ setStatus: 'rejected', data: res })
 				//}
 				//*/
-			break
+				break
 
 			case 'rejected':
 			case 'approved':
 				setShowRetake(true)
-			break
+				break
 
 			case 'cancel':
 				setShowRetake(false)
 				setShowModal(false)
-			break
+				break
 
 			case 'close':
 				setShowRetake(false)
 				setShowModal(false)
-			break
+				break
 
 			default:
-				setCard({message: '', icon: faCoffee, return: true, show: 'none'})
-				setToast({message: '', icon: faCoffee, return: true, show: 'none'})
-				setNotice({message: '', icon: faCoffee, return: true, show: 'none'})
+				setCard({ message: '', icon: faCoffee, return: true, show: 'none' })
+				setToast({ message: '', icon: faCoffee, return: true, show: 'none' })
+				setNotice({ message: '', icon: faCoffee, return: true, show: 'none' })
 				setShowRetake(false)
-			break
+				break
 		}
 		setLoading(false)
 	}, [action])
@@ -150,44 +150,48 @@ const DocumentValidator: React.FC = () => {
 		fetch(testValidationUrl, myInit)
 			.then(res => res.json())
 			.then((res: any) => {
-				/*setProcess({
-					return: true,
-					faicon: faCheckCircle,
-					message: 'ACCEPTED',
-					color: colors.true,
-					state: 'approved',
-					show: 'in-line',
-				})
-				setToast({
-					return: true,
-					faicon: faCheckCircle,
-					message: 'Picture taken!',
-					color: colors.true,
-					state: 'approved',
-					show: 'in-line',
-				})*/
+
+				switch (res.summary.outcome) {
+					case 'Approved':
+						setAction({
+							setStatus: 'approved',
+							data: {
+								return: true,
+								iconToast: faCheckCircle,
+								iconNotice: faCheckCircle,
+								label: 'ACCEPTED',
+								message: 'Picture taken!',
+								color: colors.true,
+								state: 'approved',
+								show: 'in-line',
+							}
+						}
+						)
+						break
+
+					default:
+					case 'Too Much Glare':
+						setAction({
+							setStatus: 'rejected',
+							data: {
+								return: false,
+								iconToast: faTimes,
+								iconNotice: faTimes,
+								label: 'REJECTED',
+								message: res.summary.outcome,
+								color: colors.false,
+								state: 'rejected',
+								show: 'in-line',
+							}
+						})
+						break
+				}
 			})
 			.then((err: any) => {
 				callError(err)
-				/*setProcess({
-					return: false,
-					faicon: faTimesCircle,
-					message: 'REJECTED',
-					color: colors.false,
-					state: 'rejected',
-					show: 'in-line',
-				})
-				setToast({
-					return: false,
-					faicon: faTimesCircle,
-					message: 'There was an error!',
-					color: colors.false,
-					state: 'rejected',
-					show: 'in-line',
-				})*/
 			})
 	}
-	
+
 
 	// WITH THE SERVICE
 
@@ -201,18 +205,24 @@ const DocumentValidator: React.FC = () => {
 		<h2>Take a picture. It may take time to validate your personal information.</h2>
 
 		<CardStyle color={colors.grey} height={60} proportion={1.3}>
+			<Loader params={LoaderStyle} />
+		</CardStyle>
+
+		<div style={{ marginTop: '-186px', width: '100%' }}>
 			<Button
 				disabled={loading}
 				type='submit'
 				label={'TAKE PICTURE'}
-				onClick={() => { setAction({
-					setStatus: 'taking',
-					data: {
-						color: colors.grey
-					}})}}>					
+				onClick={() => {
+					setAction({
+						setStatus: 'taking',
+						data: {
+							color: colors.grey
+						}
+					})
+				}}>
 			</Button>
-			<Loader params={LoaderStyle} />
-		</CardStyle>
+		</div>
 
 		<Modal
 			className='cameraModal'
@@ -222,37 +232,46 @@ const DocumentValidator: React.FC = () => {
 
 				<h2 className='white'>Fit your ID card inside the frame.</h2>
 				<h2 className='white'>The picture will taken automatically</h2>
-					
-				<CardStyle color={card.color} height={60} proportion={1.3}>
-					<Webcam setAction={setAction} reload={reload}/>
-				</CardStyle>				
 
-				<Notice params={notice}/>
+				<CardStyle color={card.color} height={50}>
+					<Webcam setAction={setAction} reload={reload} />
+				</CardStyle>
 
-				<Toast params={toast}/>
+				<Notice params={notice} />
 
-				{showRetake && <Button
-					type='submit'
-					disabled={loading}
-					label={'RETAKE PICTURE'}
-					onClick={() => { setAction({
-						setStatus: 'retake',
-						data: {
-							color: colors.grey,							
-						}})}
-					}
-				/>}
+				<Toast params={toast} />
 
-				<Button
-					disabled={loading}
-					label={action.setStatus === 'approved' ? 'CLOSE' : 'CANCEL'}
-					onClick={() => { setAction({
-						setStatus: 'cancel',
-						data: {
-							color: colors.grey
-						}})}
-					}
-				/>
+				{showRetake && <div style={{ position: 'absolute', marginTop: '35%', width: '100%' }}>
+					<Button
+						type='submit'
+						disabled={loading}
+						label={'RETAKE PICTURE'}
+						onClick={() => {
+							setAction({
+								setStatus: 'retake',
+								data: {
+									color: colors.grey,
+								}
+							})
+						}
+						}
+					/>
+				</div>}
+				<div style={{ position: 'absolute', bottom: '10px', marginTop: '35%', width: '100%' }}>
+					<Button
+						disabled={loading}
+						label={action.setStatus === 'approved' ? 'CLOSE' : 'CANCEL'}
+						onClick={() => {
+							setAction({
+								setStatus: 'cancel',
+								data: {
+									color: colors.grey
+								}
+							})
+						}
+						}
+					/>
+				</div>
 
 			</ModalContent>
 

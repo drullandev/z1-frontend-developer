@@ -12,20 +12,19 @@ import './styles'
 const Loader: React.FC<LoaderProps> = ({ params }) => {
 	return (
 		<ContentLoader {...params.config}>
-			{params.fields.map((row: FieldProps, index: number)=>{
+			{params.fields.map((row: FieldProps, index: number) => {
 				return row.style === 'circle' //TODO: Learn how-to to do better this case than with a predefined cascade of ternary
-				? <circle cx={row.r+2} cy={row.r+2} r={row.r} />
-				: <rect
-						x={row.x*params.width}
-						y={row.y*params.height+index*params.margin}
+					? <circle cx={row.r + 2} cy={row.r + 2} r={row.r} />
+					: <rect
+						x={row.x * params.width}
+						y={row.y * params.height + index * params.margin}
 						width={row.width}
 						rx={params.rx}
 						ry={params.ry}
 						height={params.height}
-					/>				
-					
+					/>
 			})}
-	</ContentLoader>
+		</ContentLoader>
 	)
 }
 

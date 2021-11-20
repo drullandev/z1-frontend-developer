@@ -8,12 +8,14 @@ interface ToastProps {
 }
 
 export const ToastStyle = styled.div<ToastProps>`
-  border-radius: 10px;
-  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
-  box-shadow: 0px 4px 8px ${p => p.color ?? 'red'};
+  border-radius: 4px;
   overflow: hidden;
   color: white;
   background-color: ${p => p.color ?? 'red'};
   width: 120px;
-  display: ${p => p.show ? p.show : 'none'}
+  display: ${p => p.show ? p.show : 'none'};
+  padding: 7px;
+  margin-left: 33%;
+  margin: -14% 0 0 28%;
+  z-index: 1;
 `
