@@ -79,7 +79,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 		var repeater = setTimeout(() => {
 			//if (debug) console.log('Capture made each ' + (attemptsInterval / 1000) + ' seconds until ' + ((attemptsInterval / 1000) * maxAttempts) + ' !!! ' + Date.now())
 			if ( attempts === maxAttempts) {
-				console.log('Expire; many attempts /Âª\\ ')
+				console.log('Expire; many attempts /ª\\ ')
 				expired()
 				clearTimeout(repeater)
 			}else {
