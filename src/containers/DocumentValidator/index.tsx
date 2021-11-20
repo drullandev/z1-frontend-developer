@@ -197,6 +197,7 @@ const DocumentValidator: React.FC = () => {
 		<Modal
 			className='cameraModal'
 			style={ModalStyle}
+			ariaHideApp={false}
 			isOpen={showModal}>
 			<ModalContent>
 
