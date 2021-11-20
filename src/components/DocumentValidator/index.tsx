@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import Modal from 'react-modal'
 
-import { faCoffee, faLightbulb, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons'
+import { faCoffee } from '@fortawesome/free-solid-svg-icons'
 
 import Button from '../Button/index'
 import Loader from '../Loader/index'
@@ -43,7 +43,7 @@ export interface OwnProps {
 
 const DocumentValidator: React.FC = () => {
 
-	//const webcamRef = React.useRef(null);
+	//const webcamRef = React.useRef(null)
 	const [data, setData] = useState(null)
 
 	const [action, setAction] = useState<OwnProps>({ setStatus: 'start'})
@@ -55,6 +55,8 @@ const DocumentValidator: React.FC = () => {
 
 	const [showModal, setShowModal] = useState(false)
 	const [showRetake, setShowRetake] = useState(false)
+
+	const [reload, setReload] = useState(0)
 	
 	useEffect(() => {
 
@@ -62,29 +64,39 @@ const DocumentValidator: React.FC = () => {
 
 		setLoading(true)
 		
+		setCard(action.data)
+		setToast(action.data)
+		setNotice(action.data)
+		
 		switch (action.setStatus) {
 
-		/*	case 'take':
-				setShowModal(true)
-
-				//setCard(action.data)
-				break;
-*/
 			case 'taking':
+				// Show the Webcam capturing modal windows to take the picture...
 				setShowModal(true)
-				//setShowRetake(false)
-				//Do nothing while taking
-				break;
+			break
 
 			case 'expired':
-				//Do nothing while taking
-				//setToast(action.data)
-				//setNotice(action.data)
-				//setCard(action.data)
-				//setShowRetake(true)
-				break;
+				// The camera timeout to take a good picture has expired...
+				setShowRetake(true)
+			break
+
+			case 'error':
+				setShowRetake(true)
+			break
+
+			case 'retake':
+				setData(null)
+				setShowRetake(false)
+				let rel = reload
+				setReload(++rel)
+			break
+				
+			case 'accepted':
+				// TODO: For now you must get to validate against the service (debug === false)!!!!
+			break
 
 			case 'validating':
+				// TODO: For now you must get to validate against the service (debug === false)!!!!
 				//setCard(action.data)
 				
 				//var res = passRequirements('takingPicture')
@@ -95,60 +107,29 @@ const DocumentValidator: React.FC = () => {
 				//	setAction({ setStatus: 'rejected', data: res })
 				//}
 				//*/
-				break;
+			break
 
-			case 'error':
-				//setCard(action.data)
-				//Do nothing while taking
-				break;
-
-			case 'retake':
-				//setCard(action.data)
-				/*setShowToast(false)
-				setData(null)
-				setCard(action.setStatus)
-				setShowToast(false)
-				*/
-				setShowRetake(false)
-				break;
-				
-			case 'accepted':
 			case 'rejected':
 			case 'approved':
-				setCard({message: 'pinga', icon: faCoffee, return: true, show: 'in-line'})
-				setToast({message: 'pinga', icon: faCoffee, return: true, show: 'in-line'})
-				setNotice({message: 'pinga', icon: faCoffee, return: true, show: 'in-line'})
 				setShowRetake(true)
-				//setCard(action.data)
-				/*setToast(action.data)
-				setShowRetake(true)*/
-				break;
+			break
 
 			case 'cancel':
-				setShowModal(false)
-				/*
-				setShowModal(false)
 				setShowRetake(false)
-				setShowToast(false)
-				setCard(action.data)*/
-				break;
+				setShowModal(false)
+			break
 
 			case 'close':
-				setShowModal(false)
-				/*
-				setShowModal(false)
 				setShowRetake(false)
-				setShowToast(false)
-				setCard(action.data)*/
-				break;
-
-			default: //XXX: Also start is default ;)
-				/*setShowModal(false)
 				setShowModal(false)
-				setData(null)
-				setShowRetake(false)
-				setShowToast(false)*/
+			break
 
+			default:
+				setCard({message: '', icon: faCoffee, return: true, show: 'none'})
+				setToast({message: '', icon: faCoffee, return: true, show: 'none'})
+				setNotice({message: '', icon: faCoffee, return: true, show: 'none'})
+				setShowRetake(false)
+			break
 		}
 		setLoading(false)
 	}, [action])
@@ -243,7 +224,7 @@ const DocumentValidator: React.FC = () => {
 				<h2 className='white'>The picture will taken automatically</h2>
 					
 				<CardStyle color={card.color} height={60} proportion={1.3}>
-					<Webcam setAction={setAction}/>
+					<Webcam setAction={setAction} reload={reload}/>
 				</CardStyle>				
 
 				<Notice params={notice}/>

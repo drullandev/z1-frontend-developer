@@ -5,16 +5,13 @@ import { getBright } from '../../utils/CoreUtils'
 
 import Webcam from "react-webcam"
 
-import Toast from '../Toast/index'
-import Notice from '../Notice/index'
-
 const debug = true
-const maxAttempts = 2
+const maxAttempts = 1
 const interval = 1000
-const options = ['bright']
+//const options = ['bright']
 
 const videoConstraints = {
-  facingMode: "user"
+	facingMode: "user"
 }
 
 const colors = {
@@ -27,130 +24,129 @@ const colors = {
 const imageContainerId = 'takingPicture'
 const lowerLightLevelAccepted = 40
 
-//const WebcamComponent = () => <Webcam />
-
 export interface WebcamCaptureProps {
 	setAction: any
+	reload: any
 }
 
-const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction }) => {
+const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, reload }) => {
 
-  const webcamRef = React.useRef<Webcam>(null)
+	const webcamRef = React.useRef<Webcam>(null)
 
-  const [capture, setCapture] = useState<any>()
-  const [attempts, setAttempts ] = useState(0)
+	const [capture, setCapture] = useState<any>()
+	const [attempts, setAttempts] = useState(0)
 
 	const [loading, setLoading] = useState(false)
-	const [showCamera, setShowCamera] = useState(true)
-	const [showCapture, setShowCapture] = useState(false)
-
-
-	const [cameraLoaded, setCameraLoaded] = useState(true)
 	const [showRetake, setShowRetake] = useState(false)
-
-	//const process = { show: 'none', faicon: faCoffee, color: 'white', label: 'Taking the picture...' }
 
 	useEffect(() => {
 		setLoading(true)
 	}, [])
 
-  useEffect(()=>{
+	useEffect(() => {
+		repeatPicture()
+	}, [capture, reload])
 
-    var repeatPicture = setTimeout(()=>{
+	const repeatPicture = () => {
 
-      if(debug) console.log('Capture made each '+(interval/1000)+' seconds until '+((interval/1000)*maxAttempts)+' !!! '+Date.now())
+		var repeater = setTimeout(() => {
 
-      if(attempts === maxAttempts){
+			if (debug) console.log('Capture made each ' + (interval / 1000) + ' seconds until ' + ((interval / 1000) * maxAttempts) + ' !!! ' + Date.now())
+
+			if (attempts === maxAttempts) {
 
 				setAction({
 					setStatus: 'expired',
 					data: {
-						message: 'The quantity of times required to validate a capture has expired!!'
-					}}) 
-        clearTimeout(repeatPicture)
-        setAttempts(0)
+						icon: faCoffee,
+						message: 'The quantity of times required to validate a capture has expired!!',
+						show: 'in-line',
+						color: 'red'
+					}
+				})
+				clearTimeout(repeater)
+				setAttempts(0)
 				setLoading(false)
-				
-      }else{
-				
+				setShowRetake(true)
+
+			} else {
+
 				let at = attempts
-        const imageSrc = webcamRef.current as Webcam
-        setCapture(imageSrc.getScreenshot())
-				
-				//flipFlop()
-				
-				passRequirements(imageContainerId, repeatPicture)			
+				const imageSrc = webcamRef.current as Webcam
+				setCapture(imageSrc.getScreenshot())
+				var req = passRequirements(imageContainerId, repeatPicture)
+				console.log('req', req)
 				setAttempts(++at)
 
-      }
+			}
 
-    },interval)
+			return () => clearTimeout(repeater)
 
-  },[capture])
+		}, interval)
 
-	const flipFlop = () => {
-		setTimeout(() => {
-			setShowCapture(true)
-			setShowCamera(false)
-		}, 2000);
-		setShowCapture(false)
-		setShowCamera(true)
 	}
 
-  /**
+	/**
 	 * This function was performed to take the task to valuate if the image pass some requirements! ;)
 	 * TODO: Move to the utilery!!
 	 * @param camData
 	 * @returns 
 	 */
-  const passRequirements = (containerId: string, repeater: any) => {
-		if(options.indexOf('bright')){
-			getTooDark(containerId, repeater)			
-		}		
+	const passRequirements = (containerId: string, repeater: any) => {
+		//if(options.indexOf('bright')){
+		return getTooDark(containerId, repeater)
+		//}		
 	}
 
-	const getTooDark = (containerId: string, repeater: any) =>{
-		var bright = getBright(containerId)
+	const getTooDark = (containerId: string, repeater: any) => {
+		console.log('see the bright!!')
+		var bright = getBright(containerId, true)
 		var tooDark = bright < lowerLightLevelAccepted
 		if (tooDark) {
-			setAction({ setStatus: 'error', data: {
-				return: false,
-				faicon: faLightbulb,
-				message: 'Room lighting is to low',
-				color: colors.false,
-				state: 'rejected',
-				show: debug ? true : false,
-				rgbl: bright
-			}})
+			setAction({
+				setStatus: 'error',
+				data: {
+					return: false,
+					faicon: faLightbulb,
+					message: 'Room lighting is to low',
+					color: colors.false,
+					state: 'rejected',
+					show: true,
+					rgbl: bright
+				}
+			})
+			return true
 		} else {
-			setAction({ setStatus: 'accepted', data: {
-				return: true,
-				faicon: faCheckCircle,
-				message: 'Everything is ok!',
-				color: colors.true,
-				state: 'accepted',
-				show: debug ? true : false,
-				rgbl: bright
-			}})
+			setAction({
+				setStatus: 'accepted',
+				data: {
+					return: true,
+					faicon: faCheckCircle,
+					message: 'Everything is ok!',
+					color: colors.true,
+					state: 'accepted',
+					show: true,
+					rgbl: bright
+				}
+			})
 			clearTimeout(repeater)
 		}
 	}
 
-  return <>
-		<div>		
-			<div className="MyWebcam">    
-				{!loading && <img
+	return <>
+		<div>
+			<div className="MyWebcam">
+				<img
 					id={imageContainerId}
 					style={{ maxWidth: '100%', marginBottom: '-4px' }}
 					src={capture}
 					alt='Your Document Picture!!!'
-				/>}
-				{loading && <Webcam
+				/> <Webcam
 					audio={false}
 					ref={webcamRef}
 					screenshotFormat="image/jpeg"
 					videoConstraints={videoConstraints}
-				/>}
+				/>
 			</div>
 		</div>
 	</>
