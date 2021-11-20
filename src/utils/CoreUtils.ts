@@ -1,3 +1,22 @@
+import { faCoffee, faCheckCircle, faTimes, faLightbulb } from '@fortawesome/free-solid-svg-icons'
+
+// All the states colors
+export const colors = {
+	blank: '#00000000',
+	true: '#69CC8B',
+	false: '#C00000',
+	bulb: '#F4F116',
+	grey: '#F3F2F489'
+}
+
+// All the modules colors required
+export const statusIcons = {
+	true: faCheckCircle,
+	false: faTimes,
+	lowLight: faLightbulb,
+  default: faCoffee,
+}
+
 /**
  * This function recover the RGB and LigtBright by the image related with an ID
  * - For this cae I want to help to avoid the unnecesary POSTS to the API service,
@@ -21,6 +40,7 @@ export const getRGBLLevels = (data: any, precision: number = 2, debug: boolean =
   var avg = 0
   var colorSum = 0
   var blockSize = defPrection / precision
+  
   while ((i += blockSize * 4) < length) {
     ++count;
     rgbl.r += data[i];
@@ -38,7 +58,7 @@ export const getRGBLLevels = (data: any, precision: number = 2, debug: boolean =
   return rgbl
 
 }
-
+/*
 export const getBright = (imageContainerId: string, debug: boolean = false) => {
 		
   if (debug) return { l: getRandomArbitrary(30, 50) }
@@ -62,7 +82,7 @@ export const getBright = (imageContainerId: string, debug: boolean = false) => {
   return res.l
 
 }
-
+*/
 
 export const getRandomArbitrary = (min: number, max: number) => {
   return Math.random() * (max - min) + min;

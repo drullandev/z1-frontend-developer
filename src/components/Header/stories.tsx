@@ -1,14 +1,17 @@
-// Button.stories.ts | Button.stories.tsx
+import React from 'react';
+import { ComponentStory, ComponentMeta } from '@storybook/react';
 
-import React from 'react'
-
-/*import { Meta } from '@storybook/react';
-
-import { index } from './index';
+import Header from './index';
+import { HeaderProps } from './types';
 
 export default {
-  component: index,
-  title: 'Components/ComponentSheet',
-} as Meta;
+  title: 'Example/Header',
+  component: Header,
+} as ComponentMeta<typeof Header>;
 
-export const Primary: React.VFC<{}> = () => <ComponentSheet primary>Button</ComponentSheet>;*/
+const Template: ComponentStory<typeof Header> = (args: HeaderProps) => <Header {...args} />;
+
+export const LoggedIn = Template.bind({});
+
+export const LoggedOut = Template.bind({});
+LoggedOut.args = {};

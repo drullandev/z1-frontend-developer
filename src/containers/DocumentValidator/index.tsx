@@ -2,56 +2,32 @@
 import React, { useEffect, useState } from 'react'
 import Modal from 'react-modal'
 
-import { faCoffee, faCheckCircle, faTimes } from '@fortawesome/free-solid-svg-icons'
-
-import Button from '../Button/index'
-import Loader from '../Loader/index'
-import Toast from '../Toast/index'
-import Notice from '../Notice/index'
-import Webcam from '../Webcam/index'
-
 import { ModalStyle, CardStyle, LoaderStyle, ModalContent } from './styles'
+import { StateProps } from './types'
+import { colors, statusIcons } from '../../utils/CoreUtils'
 
+import Button from '../../components/Button/index'
+import Loader from '../../components/Loader/index'
+import Toast from '../../components/Toast/index'
+import Notice from '../../components/Notice/index'
+import Webcam from '../../components/Webcam/index'
 
 const debug = true
 
 const testValidationUrl = 'https://front-exercise.z1.digital/evaluations'
 
-const colors = {
-	blank: '#00000000',
-	true: '#69CC8B',
-	false: '#C00000',
-	grey: '#F3F2F489'
-}
-
-/*
-const statusIcons = {
-	true: faCoffee,
-	false: faCoffee,
-	lowLight: faCoffee
-}
-*/
-
-export interface OwnProps {
-	setStatus:
-	'start' |
-	'take' | 'retake' | 'taking' | 'expired' |
-	'validating' | 'error' | 'accepted' |
-	'rejected' | 'approved' | 'cancel' | string,
-	data?: any
-}
+const def = { message: '', icon: statusIcons.default, return: true, show: 'none' }
 
 const DocumentValidator: React.FC = () => {
 
-	//const webcamRef = React.useRef(null)
-	const [data, setData] = useState(null)
+	const [savedCapture, setSavedCapture] = useState(null)
 
-	const [action, setAction] = useState<OwnProps>({ setStatus: 'start' })
+	const [action, setAction] = useState<StateProps>({ setStatus: 'start' })
 	const [loading, setLoading] = useState(false)
 
-	const [card, setCard] = useState<any>({ message: '', icon: faCoffee, return: true, show: 'none' })
-	const [notice, setNotice] = useState<any>({ message: '', icon: faCoffee, return: true, show: 'none' })
-	const [toast, setToast] = useState<any>({ message: '', icon: faCoffee, return: true, show: 'none' })
+	const [card, setCard] = useState<any>(def)
+	const [toast, setToast] = useState<any>(def)
+	const [notice, setNotice] = useState<any>(def)
 
 	const [showModal, setShowModal] = useState(false)
 	const [showRetake, setShowRetake] = useState(false)
@@ -75,7 +51,6 @@ const DocumentValidator: React.FC = () => {
 				break
 
 			case 'expired':
-				validateDocument()
 				setShowRetake(true)
 				break
 
@@ -84,35 +59,28 @@ const DocumentValidator: React.FC = () => {
 				break
 
 			case 'retake':
-				setData(null)
+				setSavedCapture(null)
 				let rel = reload
 				setReload(++rel)
 				setShowRetake(false)
 				break
 
 			case 'accepted':
-				// TODO: For now you must get to validate against the service (debug === false)!!!!
-				//setAction({setStatus: 'validating', data: data})
+				if(!debug) setAction({ setStatus: 'validating', data: action.data })
 				break
 
 			case 'validating':
-				// TODO: For now you must get to validate against the service (debug === false)!!!!
-				//setCard(action.data)
-
-				//var res = passRequirements('takingPicture')
-				//if (res.return) {
-				//	if (!debug) validateDocument()
-				//	if (debug) setAction({ setStatus: res.state, data: res })
-				//} else {
-				//	setAction({ setStatus: 'rejected', data: res })
-				//}
-				//*/
+				validateDocument()
 				break
 
 			case 'rejected':
 			case 'approved':
 				setShowRetake(true)
 				break
+
+			case 'saveLocal':
+				setSavedCapture(action.data)
+				break;
 
 			case 'cancel':
 				setShowRetake(false)
@@ -125,9 +93,9 @@ const DocumentValidator: React.FC = () => {
 				break
 
 			default:
-				setCard({ message: '', icon: faCoffee, return: true, show: 'none' })
-				setToast({ message: '', icon: faCoffee, return: true, show: 'none' })
-				setNotice({ message: '', icon: faCoffee, return: true, show: 'none' })
+				setCard(def)
+				setToast(def)
+				setNotice(def)
 				setShowRetake(false)
 				break
 		}
@@ -145,7 +113,7 @@ const DocumentValidator: React.FC = () => {
 		var myInit = {
 			method: 'POST',
 			headers: myHeaders,
-			body: data
+			body: savedCapture
 		}
 		fetch(testValidationUrl, myInit)
 			.then(res => res.json())
@@ -157,16 +125,15 @@ const DocumentValidator: React.FC = () => {
 							setStatus: 'approved',
 							data: {
 								return: true,
-								iconToast: faCheckCircle,
-								iconNotice: faCheckCircle,
+								iconToast: statusIcons.true,
+								iconNotice: statusIcons.true,
 								label: 'ACCEPTED',
 								message: 'Picture taken!',
 								color: colors.true,
 								state: 'approved',
 								show: 'in-line',
 							}
-						}
-						)
+						})
 						break
 
 					default:
@@ -175,8 +142,8 @@ const DocumentValidator: React.FC = () => {
 							setStatus: 'rejected',
 							data: {
 								return: false,
-								iconToast: faTimes,
-								iconNotice: faTimes,
+								iconToast: statusIcons.false,
+								iconNotice: statusIcons.false,
 								label: 'REJECTED',
 								message: res.summary.outcome,
 								color: colors.false,
@@ -205,7 +172,10 @@ const DocumentValidator: React.FC = () => {
 		<h2>Take a picture. It may take time to validate your personal information.</h2>
 
 		<CardStyle color={colors.grey} height={60} proportion={1.3}>
-			<Loader params={LoaderStyle} />
+			{savedCapture
+				? <img src={savedCapture} alt='Final Capture'/>
+				: <Loader params={LoaderStyle} />
+			}
 		</CardStyle>
 
 		<div style={{ marginTop: '-186px', width: '100%' }}>
@@ -234,7 +204,7 @@ const DocumentValidator: React.FC = () => {
 				<h2 className='white'>The picture will taken automatically</h2>
 
 				<CardStyle color={card.color} height={50}>
-					<Webcam setAction={setAction} reload={reload} />
+					<Webcam setAction={setAction} loader={LoaderStyle} restart={reload} />
 				</CardStyle>
 
 				<Notice params={notice} />
@@ -253,8 +223,7 @@ const DocumentValidator: React.FC = () => {
 									color: colors.grey,
 								}
 							})
-						}
-						}
+						}}
 					/>
 				</div>}
 				<div style={{ position: 'absolute', bottom: '10px', marginTop: '35%', width: '100%' }}>
@@ -268,8 +237,7 @@ const DocumentValidator: React.FC = () => {
 									color: colors.grey
 								}
 							})
-						}
-						}
+						}}
 					/>
 				</div>
 

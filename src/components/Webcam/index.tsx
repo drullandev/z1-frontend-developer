@@ -1,98 +1,120 @@
-import React, { useState, useEffect } from 'react';
-import { faCoffee, faLightbulb, faCheckCircle, faCircle } from '@fortawesome/free-solid-svg-icons'
-
-import { getBright } from '../../utils/CoreUtils'
+import React, { useState, useEffect, useRef } from 'react';
+import { faCoffee, faLightbulb, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
+import { getRandomArbitrary, getRGBLLevels, colors } from '../../utils/CoreUtils'
+import { WebcamCaptureProps } from './types'
 
 import Webcam from "react-webcam"
+import Loader from '../Loader';
+
+import '../../assets/ccard.jpg'
 
 const debug = true
-const maxAttempts = 1
-const interval = 1000
-//const options = ['bright']
 
-const videoConstraints = {
+const maxAttempts = 10 
+const attemptsInterval = 1000
+const options = ['bright']
+const imageContainerId = 'captureImg'
+const lowestLightLevelAccepted = 40
+
+const videoConstraints = { 
 	facingMode: "user"
 }
 
-const colors = {
-	blank: '#00000000',
-	true: '#69CC8B',
-	false: '#C00000',
-	grey: '#F3F2F489'
-}
+/**
+ * This is my feature to take pictures automathically...
+ * TODO: Requires better explanation! Also is not absolutely mature or definitive feature, only a testing workaround/yagni for the code cience ^^!
+ * @param param0 
+ * @returns 
+ */
+const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loader }) => {
 
-const imageContainerId = 'takingPicture'
-const lowerLightLevelAccepted = 40
-
-export interface WebcamCaptureProps {
-	setAction: any
-	reload: any
-}
-
-const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, reload }) => {
-
-	const webcamRef = React.useRef<Webcam>(null)
+	const webcamRef = useRef<Webcam>(null)
+	const captureImg = useRef<any>()
+	
+	const [attempts, setAttempts] = useState(0)
+	const [capturing, setCapturing] = useState(false)
 
 	const [capture, setCapture] = useState<any>()
-	const [attempts, setAttempts] = useState(0)
+	const [evalutaing, setEvaluating] = useState(false)
 
-	const [loading, setLoading] = useState(false)
+	const [showCamera, setShowCamera] = useState(true)
+	const [showCapture, setShowCapture] = useState(true)
+
 	const [showRetake, setShowRetake] = useState(false)
 
 	useEffect(() => {
-		setLoading(true)
-	}, [])
+		//let startTimeout = 5000
+		//console.log('The captures will begin in '+(startTimeout/1000)+'s')
+		//setTimeout(() => setCapturing(true), startTimeout)
+		setCapturing(true)
+	}, [restart])
 
-	
 	useEffect(() => {
-		launchCapture()
-	}, [capture, reload])
+		if(debug)
+			takeCapture()
+		else
+			capturesLoop()
+	}, [capturing])
 
-	const launchCapture = () => {
+	// Evaluate capture
+	useEffect(() => {
+		if(!capture) return
+		console.log('Evaluating capture!', capture)
+		captureImg.current.src = capture
+		passRequirements(imageContainerId)
+	}, [capture])
 
+	// Take a new capture and set the capture data
+	const takeCapture = () => {
+		const imageSrc = webcamRef.current as Webcam		
+		console.log(imageSrc.getScreenshot())		
+		setCapture(imageSrc.getScreenshot())
+	}
+
+	// Loop the captures until a acceptable one!
+	const capturesLoop = () => {
 		var repeater = setTimeout(() => {
-
-			if (debug) console.log('Capture made each ' + (interval / 1000) + ' seconds until ' + ((interval / 1000) * maxAttempts) + ' !!! ' + Date.now())
-
+			if (debug) console.log('Capture made each ' + (attemptsInterval / 1000) + ' seconds until ' + ((attemptsInterval / 1000) * maxAttempts) + ' !!! ' + Date.now())
 			if (attempts === maxAttempts) {
-				
-				clearTimeout(repeater)
-
-				setAction({
-					setStatus: 'expired',
-					data: {
-						icon: faCoffee,
-						message: 'Expired oportunities!!',
-						show: 'in-line',
-						color: 'red',
-						label: 'REJECTED',
-						iconToast: faCoffee,
-						iconNotice: faCoffee,
-					}
-				})	
-
-				setLoading(false)
-				setShowRetake(true)
-
-				setAttempts(0)
-				
+				expired()
 			} else {
-
-				const imageSrc = webcamRef.current as Webcam
-				passRequirements(imageContainerId, launchCapture)
-				setCapture(imageSrc.getScreenshot())
-
-
-				
+				takeCapture()
 				let at = attempts
 				setAttempts(++at)
-
 			}
+		}, attemptsInterval)
+		return () => clearTimeout(repeater)
+	}
 
-			return () => clearTimeout(repeater)
+	// The capture attemps has end without a good shot taken!	 
+	const expired = () => {
 
-		}, interval)
+		// Reset shooter
+		setAttempts(0)
+		setCapturing(false)
 
+		setAction({
+			setStatus: 'expired',
+			data: {
+				icon: faCoffee,
+				message: 'Expired oportunities!!',
+				show: 'in-line',
+				color: 'red',
+				label: 'REJECTED',
+				iconToast: faCoffee,
+				iconNotice: faCoffee,
+			}
+		})
+
+		setShowRetake(true)
+	}
+
+	/**
+	 * Not running well here o.o TODO see why??
+	 * @returns 
+	 */
+	const sleep = async (ms: number) => {
+		return new Promise(resolve => setTimeout(resolve, ms));
 	}
 
 	/**
@@ -101,17 +123,19 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, reload }) => {
 	 * @param camData
 	 * @returns 
 	 */
-	const passRequirements = (containerId: string, repeater: any) => {
-		//if(options.indexOf('bright')){
-		setAction(getTooDark(containerId, repeater))
-
-		//}		
+	const passRequirements = (containerId: string) => {
+		if (options.includes('bright')) {
+			setAction(getTooDark(containerId))
+		}
+		if (options.includes('cardDetected')) {
+			setAction(cardDetected(containerId))
+		}
 	}
 
-	const getTooDark = (containerId: string, repeater: any) => {
-		console.log('see the bright!!')
+	const getTooDark = (containerId: string) => {
 		var bright = getBright(containerId, true)
-		var tooDark = bright < lowerLightLevelAccepted
+		console.log('bright', bright)
+		var tooDark = bright < lowestLightLevelAccepted
 		if (tooDark) {
 			return {
 				setStatus: 'error',
@@ -122,7 +146,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, reload }) => {
 					state: 'rejected',
 					label: 'REJECTED',
 					message: 'Room lighting is to low',
-					color: colors.false,
+					color: colors.bulb,
 					gbColor: colors.true,
 					iconToast: faLightbulb,
 					iconNotice: faLightbulb,
@@ -137,30 +161,73 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, reload }) => {
 					rgbl: bright,
 					state: 'accepted',
 					label: 'ACCEPTED',
-					message: 'Your image is accepted...',// TODO: Is not under control!....
+					message: 'Your light is accepted...',// TODO: Is not under control!....
 					color: colors.true,
 					gbColor: colors.true,
-					iconToast: faCircle,
-					iconNotice: faCircle,
+					iconToast: faCheckCircle,
+					iconNotice: faCheckCircle,
 				}
 			}
 		}
+	}
+
+	const cardDetected = (containerId: string) => {
+		return {
+			setStatus: 'accepted',
+			data: {
+				return: true,
+				show: true,
+				state: 'accepted',
+				label: 'ACCEPTED',
+				message: 'Your image has a card...',// TODO: Is not under control!....
+				color: colors.true,
+				gbColor: colors.true,
+				iconToast: faCheckCircle,
+				iconNotice: faCheckCircle,
+			}
+		}
+	}
+
+	const getBright = (img: any, debug: boolean = false) => {
+
+		console.log('img', img)
+
+		if (debug) return { l: getRandomArbitrary(30, 50) }
+
+		var img: any = document.getElementById(imageContainerId)
+		console.log('img', img)
+
+		var canvas: any = document.createElement('canvas')
+		var context: any = canvas.getContext && canvas.getContext('2d')
+
+		var data, width, height
+		width = canvas.height = img.naturalHeight || img.offsetHeight || img.height
+		height = canvas.width = img.naturalWidth || img.offsetWidth || img.width
+
+		context.drawImage(img, 0, 0)
+
+		data = context.getImageData(0, 0, width, height)
+
+		var res = getRGBLLevels(data.data, 2, true)
+
+		return res.l
+
 	}
 
 	return <>
 		<div>
 			<div className="MyWebcam">
 				<img
-					id={imageContainerId}
-					style={{ maxWidth: '100%', marginBottom: '-4px', visibility: true ? 'visible' : 'hidden' }}
+					ref={captureImg}
+					style={{ maxWidth: '100%', marginBottom: '-4px', visibility: showCapture ? 'visible' : 'hidden' }}
 					alt='Your Document Picture!!!'
-					src={capture ?? '../assets/ccard.jpg' }
 				/>
+				<Loader params={loader} />
 				<Webcam
-					style={{ maxWidth: '100%', marginBottom: '-4px', visibility: true ? 'visible' : 'hidden' }}
-					audio={false}
 					ref={webcamRef}
-					screenshotFormat="image/jpeg"
+					style={{ maxWidth: '100%', marginBottom: '-4px', display: showCamera ? 'in-line' : 'none' }}
+					audio={false}
+					screenshotFormat='image/jpeg'
 					videoConstraints={videoConstraints}
 				/>
 			</div>

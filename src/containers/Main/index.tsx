@@ -2,7 +2,7 @@ import React from 'react'
 import { MyApp, AppBody } from './styles'
 
 import Header from '../../components/Header'
-import DocumentValidator  from '../../components/DocumentValidator'
+import DocumentValidator  from '../DocumentValidator'
 
 function Main() {
   return (
