@@ -3,7 +3,7 @@ import { faCoffee, faLightbulb, faCheckCircle } from '@fortawesome/free-solid-sv
 import { getRandomArbitrary, getRGBLLevels, colors } from '../../utils/CoreUtils'
 import { WebcamCaptureProps } from './types'
 
-import Webcam from "react-webcam"
+import Webcam from 'react-webcam'
 import Loader from '../Loader';
 
 import '../../assets/ccard.jpg'
@@ -12,12 +12,15 @@ const debug = true
 
 const maxAttempts = 10 
 const attemptsInterval = 1000
+const startTimeout = 5000
+
 const options = ['bright']
-const imageContainerId = 'captureImg'
 const lowestLightLevelAccepted = 40
 
+const imageContainerId = 'captureImg'
+
 const videoConstraints = { 
-	facingMode: "user"
+	facingMode: 'user'
 }
 
 /**
@@ -43,9 +46,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 	const [showRetake, setShowRetake] = useState(false)
 
 	useEffect(() => {
-		//let startTimeout = 5000
-		//console.log('The captures will begin in '+(startTimeout/1000)+'s')
-		//setTimeout(() => setCapturing(true), startTimeout)
+		setTimeout(() => setCapturing(true), startTimeout)
 		setCapturing(true)
 	}, [restart])
 
@@ -67,7 +68,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 	// Take a new capture and set the capture data
 	const takeCapture = () => {
 		const imageSrc = webcamRef.current as Webcam		
-		console.log(imageSrc.getScreenshot())		
+		console.log('capture', imageSrc.getScreenshot())		
 		setCapture(imageSrc.getScreenshot())
 	}
 
@@ -79,11 +80,11 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 				expired()
 			} else {
 				takeCapture()
-				let at = attempts
-				setAttempts(++at)
+				let at = attempts+1
+				setAttempts(at)
 			}
+			return () => clearTimeout(repeater)
 		}, attemptsInterval)
-		return () => clearTimeout(repeater)
 	}
 
 	// The capture attemps has end without a good shot taken!	 
@@ -216,11 +217,11 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 
 	return <>
 		<div>
-			<div className="MyWebcam">
+			<div className='MyWebcam'>
 				<img
 					ref={captureImg}
 					style={{ maxWidth: '100%', marginBottom: '-4px', visibility: showCapture ? 'visible' : 'hidden' }}
-					alt='Your Document Picture!!!'
+					alt='Your Capture!!!'
 				/>
 				<Loader params={loader} />
 				<Webcam
