@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { faCoffee, faLightbulb, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
-import { getRandomArbitrary, getRGBLLevels, colors } from '../../utils/CoreUtils'
+import { getRGBLLevels, colors, getRandomArbitrary } from '../../utils/CoreUtils'
 import { WebcamCaptureProps } from './types'
 
 import Webcam from 'react-webcam'
@@ -43,7 +43,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 	const [evalutaing, setEvaluating] = useState(false)
 
 	const [showCamera, setShowCamera] = useState(true)
-	const [showCapture, setShowCapture] = useState(true)
+	const [showCapture, setShowCapture] = useState(false)
 
 	const [showRetake, setShowRetake] = useState(false)
 
@@ -51,7 +51,14 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 	
 	useEffect(() => {
 		capturesLoop()
-	}, [webcamRef])
+	}, [webcamRef, restart])
+
+	// Evaluate capture
+	useEffect(() => {
+		if(!capture) return
+		console.log('Evaluating capture!')
+		passRequirements(imageContainerId)
+	}, [capture])
 
 	const takeCapture = useCallback(() => {
 		let imageSrc = webcamRef.current as Webcam		
@@ -69,23 +76,21 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 		console.log('I capture loop picture')
 		var repeater = setTimeout(() => {
 			if (debug) console.log('Capture made each ' + (attemptsInterval / 1000) + ' seconds until ' + ((attemptsInterval / 1000) * maxAttempts) + ' !!! ' + Date.now())
-			if (attempts === maxAttempts) {
+			if ( attempts === maxAttempts) {
 				expired()
-			} else {
+				clearTimeout(repeater)
+			}else {
 				takeCapture()
 				let at = attempts+1
 				setAttempts(at)
 			}
-			return () => clearTimeout(repeater)
 		}, attemptsInterval)
 	}
 
-	// Evaluate capture
-	useEffect(() => {
-		if(!capture) return
-		console.log('Evaluating capture!')
-		passRequirements(imageContainerId)
-	}, [capture])
+	const stopCapturing = () => {
+		setShowCamera(false)
+		setShowCapture(true)
+	}
 
 	// The capture attemps has end without a good shot taken!	 
 	const expired = () => {
@@ -115,19 +120,22 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 	}
 
 	const passRequirements = (containerId: string) => {
+		// Bright parameters to block the imaegs
 		if (options.includes('bright')) {
 			setAction(getTooDark(containerId))
 		}
+		// Other parameters to block the imaegs
 		if (options.includes('cardDetected')) {
-			setAction(cardDetected(containerId))
+			//setAction(cardDetected(containerId))
 		}
 	}
 
 	const getTooDark = (containerId: string) => {
 		var bright = getBright(true)
-		console.log('bright', bright, bright < lowestLightLevelAccepted)
 		var tooDark = bright < lowestLightLevelAccepted
+
 		if (tooDark) {
+			// Continue traking the webcam
 			return {
 				setStatus: 'error',
 				data: {
@@ -143,7 +151,9 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 					iconNotice: faLightbulb,
 				}
 			}
+
 		} else {
+			stopCapturing()
 			return {
 				setStatus: 'accepted',
 				data: {
@@ -180,49 +190,45 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 	}
 
 	const getBright = (debug: boolean = false) => {		
-		
-		var webcam: any = webcamRef.current
-		var canvas = webcam.canvas
-		var context = webcam.context
-		var data, width, height
-			width = canvas.width = webcam.width
-			height = canvas.height = webcam.height
+			
+		if (debug) return { l: getRandomArbitrary(30, 50) }
 
-
-	data = context.getImageData(0, 0, width, height)
-		console.log(data)
-
-		var canvas: any = captureCanvasRef.current
+		var img: any = document.getElementById(imageContainerId)
+		var canvas: any = document.createElement('canvas')
 		var context: any = canvas.getContext && canvas.getContext('2d')
-
-		return 10
-/*
-
-
-		var res = getRGBLLevels(data.data, 2, true)
-
+	
+		var data, width, height
+		 width = canvas.height = img.naturalHeight || img.offsetHeight || img.height
+		 height = canvas.width = img.naturalWidth || img.offsetWidth || img.width
+	
+		context.drawImage(img, 0, 0)	
+	
+		data = context.getImageData(0, 0, width, height)
+	
+		var res  = getRGBLLevels(data.data, 2, true)
+	
 		return res.l
-*/
+		
 	}
 
 	return <>
 		<div>
 			<div className='MyWebcam'>
 
-				<canvas	ref={captureCanvasRef}>
-					<img
-						ref={captureImgRef}
-						style={{
-							maxWidth: '100%',
-							marginBottom: '-4px',
-							visibility: showCapture ? 'visible' : 'hidden'
-						}}
-						src={capture}
-						alt='Your Capture!!!'
-					/>
-				</canvas>
+				<img
+					id={imageContainerId}
+					ref={captureImgRef}
+					style={{
+						maxWidth: '100%',
+						marginBottom: '-4px',
+						visibility: true ? 'visible' : 'hidden'
+					}}
+					src={capture}
+					alt='Your Capture!!!'
+				/>
+				{/*<canvas	ref={captureCanvasRef}></canvas>*/}
 				{attempts === 0 && <Loader params={loader} />}
-				{showCamera && <Webcam
+				<Webcam
 					ref={webcamRef}
 					style={{
 						maxWidth: '100%',
@@ -232,7 +238,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 					audio={false}
 					screenshotFormat='image/jpeg'
 					videoConstraints={videoConstraints}
-				/>}
+				/>
 			</div>
 		</div>
 	</>
