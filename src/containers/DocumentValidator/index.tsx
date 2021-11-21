@@ -24,7 +24,7 @@ const DocumentValidator: React.FC = () => {
 
 	const [savedCapture, setSavedCapture] = useState(null)
 
-	const [action, setAction] = useState<StateProps>({ setStatus: 'start' })
+	const [action, setAction] = useState<StateProps>({ setStatus: 'start', showRetake: false })
 	const [loading, setLoading] = useState(false)
 
 	const [card, setCard] = useState<CardProps>()
@@ -34,20 +34,16 @@ const DocumentValidator: React.FC = () => {
 	const [showModal, setShowModal] = useState(false)
 	const [showRetake, setShowRetake] = useState(false)
 
-	const [reload, setReload] = useState(0)
+	const [restart, setRestart] = useState(0)
 
 	useEffect(() => {
 
 		if (debug) console.log('- Action register changes!', action)
+		if(!action) return
 
 		setLoading(true)
 
-		if (action.data) {
-			setCard(action.data.card)
-			setToast(action.data.toast)
-			setNotice(action.data.notice)
-			setShowRetake(action.data.showRetake)
-		}
+		handleResult(action)
 
 		switch (action.setStatus) {
 
@@ -55,54 +51,48 @@ const DocumentValidator: React.FC = () => {
 				setShowModal(true)
 				break
 
-			case 'expired':
-
-				break
-
 			case 'error':
-
-				break
-
 			case 'retake':
 				setSavedCapture(null)
-				let rel = reload + 1
-				setReload(rel)
+				let rel = restart + 1
+				setRestart(rel)
 				break
 
 			case 'accepted':
-				if (!debug) setAction({ setStatus: 'validating', data: action.data })
-				break
-
-			case 'validating':
 				validateDocument()
 				break
 
-			case 'rejected':
 			case 'approved':
-
+				setSavedCapture(action.data.data)
+				setShowModal(false)
 				break
 
-			case 'saveLocal':
-				//setSavedCapture(action.data)
+			case 'validated':
+				setSavedCapture(action.data)
 				break;
 
 			case 'cancel':
 			case 'close':
+				if(action.data){
+					setSavedCapture(action.data)
+				}
 				setShowModal(false)
-				break
+				break				
 
-			default:
-				//setCard(undefined)
-				//setToast(undefined)
-				//setNotice(undefined)
-				//setShowRetake(false)
-				break
 		}
+
 		setLoading(false)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [action])
 
 	// OTHERS
+
+	const handleResult = (action: any) => {		
+		setCard(action.card)
+		setToast(action.toast)
+		setNotice(action.notice)
+		setShowRetake(action.showRetake)
+	}
 
 	/**
 		* This call allows to send the image content in order to be evaluated
@@ -123,24 +113,25 @@ const DocumentValidator: React.FC = () => {
 					case 'Approved':
 						setAction({
 							setStatus: 'approved',
+							showRetake: false,
+							card: {
+								color: colors.true
+							},
+							toast: {
+								show: 'in-line',//
+								label: 'ACCEPTED',
+								icon: statusIcons.true,
+								iconColor: colors.true,
+								bgColor: colors.true,
+							},
+							notice: {
+								show: 'in-line',
+								icon: statusIcons.true,
+								label: 'Picture taken!',
+								iconColor: colors.true,
+							},
 							data: {
-								showRetake: false,
-								card: {
-									color: colors.true
-								},
-								toast: {
-									show: 'in-line',//
-									label: 'ACCEPTED',
-									icon: statusIcons.true,
-									iconColor: colors.true,
-									bgColor: colors.true,
-								},
-								notice: {
-									show: 'in-line',
-									icon: statusIcons.true,
-									label: res.summary.outcome,
-									iconColor: colors.true,
-								}
+								debug: res
 							}
 						})
 						break
@@ -149,33 +140,33 @@ const DocumentValidator: React.FC = () => {
 					default:
 						setAction({
 							setStatus: 'rejected',
+							showRetake: true,
+							card: {
+								color: colors.false,
+							},
+							toast: {
+								show: 'in-line',
+								icon: statusIcons.false,
+								label: 'REJECTED',
+								bgColor: colors.false,
+							},
+							notice: {
+								show: 'in-line',
+								icon: statusIcons.false,
+								label: res.summary.outcome,
+								iconColor: colors.false,
+							},
 							data: {
-								showRetake: true,
-								card: {
-									color: colors.false,
-								},
-								toast: {
-									show: 'in-line',
-									icon: statusIcons.false,
-									label: 'REJECTED',
-									bgColor: colors.false,
-								},
-								notice: {
-									show: 'in-line',
-									icon: statusIcons.false,
-									label: res.summary.outcome,
-									iconColor: colors.false,
-								}
+								debug: res
 							}
 						})
 						break
 				}
 			})
-			.then((err: any) => {
+			.catch((err: any) => {
 				callError(err)
 			})
 	}
-
 
 	// WITH THE SERVICE
 
@@ -203,11 +194,9 @@ const DocumentValidator: React.FC = () => {
 				onClick={() => {
 					setAction({
 						setStatus: 'taking',
-						data: {
-							showRetake: false,
-							card: {
-								color: colors.grey
-							}
+						showRetake: false,
+						card: {
+							color: colors.grey
 						}
 					})
 				}}>
@@ -225,7 +214,7 @@ const DocumentValidator: React.FC = () => {
 				<p className='white'>The picture will taken automatically</p>
 
 				{card && <CardStyle color={card.color} height={50}>
-					<Webcam setAction={setAction} loader={LoaderStyle} restart={reload} />
+					<Webcam setAction={setAction} loader={LoaderStyle} restart={restart} checks={['bright']} setSavedCapture={setSavedCapture}/>
 				</CardStyle>}
 
 				<Notice {...notice as NoticeProps} />
@@ -240,12 +229,10 @@ const DocumentValidator: React.FC = () => {
 						onClick={() => {
 							setAction({
 								setStatus: 'retake',
-								data: {
-									showRetake: false,
-									card: {
-										color: colors.grey
-									}
-								},
+								showRetake: false,
+								card: {
+									color: colors.grey
+								}
 							})
 						}}
 					/>
@@ -257,12 +244,10 @@ const DocumentValidator: React.FC = () => {
 						onClick={() => {
 							setAction({
 								setStatus: 'cancel',
-								data: {
-									showRetake: false,
-									card: {
-										color: colors.grey
-									}
-								}
+								showRetake: false,
+								card: {
+									color: colors.grey
+								},
 							})
 						}}
 					/>

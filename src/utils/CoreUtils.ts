@@ -1,10 +1,11 @@
-import { faCoffee, faCheckCircle, faTimes, faLightbulb } from '@fortawesome/free-solid-svg-icons'
+import { faCoffee, faCheckCircle, faTimes, faLightbulb, faClock } from '@fortawesome/free-solid-svg-icons'
 
 // All the states colors
 export const colors = {
 	blank: '#00000000',
 	true: '#69CC8B',
 	false: '#C00000',
+  warning: '#D4B939',
 	bulb: '#F4F116',
 	grey: '#F3F2F489',
   moregrey: '#313131', //Based on my testing background!!
@@ -17,8 +18,10 @@ export const statusIcons = {
 	true: faCheckCircle,
 	false: faTimes,
 	bulb: faLightbulb,
+  expired: faClock,
   default: faCoffee,
 }
+
 
 /**
  * This function recover the RGB and LigtBright by the image related with an ID
@@ -32,7 +35,7 @@ export const statusIcons = {
  */
 export const getRGBLLevels = (data: any, precision: number = 2, debug: boolean = false) => {
 
-  if (debug) return { l: getRandomArbitrary(30, 50) }
+  if (debug) return { l: getRandomArbitrary(2, 6) }
 
   var defPrection = 50
   var i = -4
@@ -85,7 +88,7 @@ export const getBright = (imageContainerId: string, debug: boolean = false) => {
 
   data = context.getImageData(0, 0, width, height)
 
-  var res  = getRGBLLevels(data.data, 2, true)
+  var res  = getRGBLLevels(data, 2, true)
 
   return res.l
 

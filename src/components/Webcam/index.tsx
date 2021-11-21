@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { faCoffee, faLightbulb, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
 import { getRGBLLevels, colors, getRandomArbitrary, statusIcons } from '../../utils/CoreUtils'
 import { WebcamCaptureProps } from './types'
 
@@ -10,13 +9,10 @@ import '../../assets/ccard.jpg'
 
 const debug = true
 
-const maxAttempts = 100
-const attemptsInterval = 1000
+const maxAttempts = 3
 const startTimeout = 3000
 
-const options = ['bright']
-const lowestLightLevelAccepted = 40
-
+const lowestLightLevelAccepted = 1
 const imageContainerId = 'captureImgRef'
 
 const videoConstraints = { 
@@ -29,7 +25,7 @@ const videoConstraints = {
  * @param param0 
  * @returns 
  */
-const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loader }) => {
+const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loader, checks, setSavedCapture }) => {
 
 	const webcamRef = useRef<Webcam>(null)
 	const captureImgRef = useRef<any>()
@@ -37,27 +33,23 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 	
 	const [attempts, setAttempts] = useState(0)
 	const [capturing, setCapturing] = useState(false)
+	const [expired, setExpired] = useState(false)
 
 	const [capture, setCapture] = useState<any>()
-	const [reshot, setReshot] = useState('')
-	const [evalutaing, setEvaluating] = useState(false)
+	const [evaluating, setEvaluating] = useState(false)
+	const [accepted, setAccepted] = useState(false)
 
 	const [showCamera, setShowCamera] = useState(true)
 	const [showCapture, setShowCapture] = useState(true)
-
-	const [showRetake, setShowRetake] = useState(false)
 
 	useEffect(() => {
 		setTimeout(() => {
 			setCapturing(true)
 		}, startTimeout)
-	},[])
+	},[restart])
 	
 	useEffect(() => {
-		capturesLoop()
-	}, [capturing, restart])
-
-	useEffect(() => {
+		if(stopped()) return
 		//setShowCamera(capturing)
 		//setShowCapture(!capturing)
 	}, [capturing])
@@ -65,167 +57,212 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 	// Evaluate capture
 	useEffect(() => {
 		if(!capture) return
-		console.log('- Evaluating capture!')
-		passRequirements(imageContainerId)
+		passRequirements()
 	}, [capture])
 
 	const takeCapture = useCallback(() => {
 		let imageSrc = webcamRef.current as Webcam		
 		let screenShot = imageSrc.getScreenshot()
 		if(screenShot){
+			setShowCapture(true)
 			setCapture(imageSrc.getScreenshot())
-		}else{
-			let now = Date.now().toString()
-			setReshot(now)
 		}
 	},[webcamRef, setCapture])
 
-		// Loop the captures until a acceptable one!
-	const capturesLoop = () => {
-		console.log('- Running pictures loop!')
-		let repeater = setTimeout(() => {
-			if ( attempts === maxAttempts) {
-				console.log('- Expire; many attempts /�\\ ')
-				expired()
-				clearTimeout(repeater)
-			}else {
-				console.log('- Taking new picture...')
-				takeCapture()
-				let at = attempts+1
-				setAttempts(at)
-			}
-		}, attemptsInterval)
-	}
+	useEffect(() => {
+		if(stopped()) return
+		if ( attempts === maxAttempts) {
+			console.log('- Expired; '+attempts+' attempts exhausted /�\\ ')
+			setExpired(true)
+		}else {
+			takeCapture()
+			let at = attempts+1
+			setAttempts(at)
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	},[evaluating, capturing, restart])
 
-	// The capture attemps has end without a good shot taken!	 
-	const expired = () => {
+	useEffect(()=>{
 
-		// Reset shooter
-		setAttempts(0)
-		setCapturing(false)
+	},[accepted])
+
+	useEffect(() => {
+
+		if(!expired) return
+
+		resetShooter()
 
 		setAction({
 			setStatus: 'expired',
 			return: false,
-			data: {	
-				card: {
-					color: 'red',
-				},
-				toast: {
-					show: 'in-line',
-					icon: statusIcons.default,
-					label: 'EXPIRED',
-					iconColor: colors.false,
-					bgColor: colors.false,
-				},
-				notice: {
-					show: 'in-line',
-					icon: statusIcons.false,
-					label: 'Expired oportunities',
-					bgColor: colors.false,
-					lblColor: colors.false,
-				}
+			showRetake: true,
+			card: {
+				color: 'red',
+			},
+			toast: {
+				show: 'in-line',
+				icon: statusIcons.default,
+				label: 'EXPIRED',
+				iconColor: colors.false,
+				bgColor: colors.false,
+			},
+			notice: {
+				show: 'in-line',
+				icon: statusIcons.expired,
+				label: 'Expired oportunities',
+				bgColor: colors.warning,
+				lblColor: colors.false,
+			},
+			data: {
+				debug: '* Expired after '+maxAttempts+' attempts'
 			}
 		})
 
-		setShowRetake(true)
+	}, [expired])
+
+	// STATES
+
+	const stopped = () => {
+		if(evaluating) return true
+		if(!capturing) return true
+		return false
 	}
 
-	const passRequirements = (containerId: string) => {
+	// ACTIONS
+
+	const resetShooter = () => {		
+		setAttempts(0)
+		setCapturing(false)
+	}
+
+	// SHOT REQUIREMENTS
+
+	/**
+	 * This routine allows to know if the image pass some requirements
+	 */
+	const passRequirements = () => {
+
+		setEvaluating(true)
+
 		// Bright parameters to block the images
-		if (options.includes('bright')) {
-			setAction(getTooDark(containerId))
+		if (checks.includes('bright')) {
+			setAction(getTooDark())
 		}
+
 		// Other parameters to block the images
-		if (options.includes('cardDetected')) {
-			setAction(cardDetected(containerId))
+		if (checks.includes('cardDetected')) {
+			setAction(cardDetected())
 		}
+
+		setEvaluating(false)
+
 	}
 
-	const getTooDark = (containerId: string) => {
+	/**
+	 * Evaluates if the picture has light enough
+	 */
+	const getTooDark = () => {
+
 		var bright = getBright(true)
 		var tooDark = bright < lowestLightLevelAccepted
-		//console.log(bright+' < '+lowestLightLevelAccepted)
+		
 		if (tooDark) {
-			// Continue traking the webcam
+			setCapturing(true)
+			setAccepted(false)
 			return {
 				setStatus: 'error',
-				data: {		
-					showRetake: false,
-					card: {
-						color: colors.moregrey,					
-					},				
-					toast: {
-						show: 'none',
-						icon: statusIcons.false,
-						label: 'REJECTED',
-						iconColor: colors.bulb,
-						bgColor: colors.false,
-					},				
-					notice: {
-						show: 'in-line',
-						icon: statusIcons.bulb,
-						label: 'Room lighting is to low',
-						iconColor: colors.bulb,
-					}
+				showRetake: false,
+				card: {
+					color: colors.moregrey,					
+				},				
+				toast: {
+					show: 'none',
+					icon: statusIcons.false,
+					label: 'REJECTED',
+					iconColor: colors.bulb,
+					bgColor: colors.false,
+				},				
+				notice: {
+					show: 'in-line',
+					icon: statusIcons.bulb,
+					label: 'Room lighting is to low',
+					iconColor: colors.bulb,
+				},
+				data: {
+					debug: '* Bright diff, '+bright+' < '+lowestLightLevelAccepted
 				}
 			}
 
 		} else {
 			setCapturing(false)
+			setAccepted(true)
 			return {
 				setStatus: 'accepted',				
-				data: {
-					showRetake: true,
-					card: {
-						color: colors.moregrey,
-					},
-					toast: {
-						show: 'in-line',
-						icon: statusIcons.true,
-						iconColor: colors.bulb,
-						label: 'ACCEPTED',
-						bgColor: colors.true,
-					},
-					notice: {
-						show: 'in-line',
-						icon: statusIcons.bulb,
-						iconColor: colors.bulb,
-						label: 'Picture bright is accepted!',
-					}
-				}
-			}
-		}
-	}
-
-	const cardDetected = (containerId: string) => {
-		return {
-			setStatus: 'accepted',
-			data: {
-				showRetake: true,
+				showRetake: false,
 				card: {
-					color: colors.true,
+					color: colors.grey,
 				},
 				toast: {
-					show: 'in-line',
+					show: 'none',
 					icon: statusIcons.true,
-					iconColor: colors.true,
+					iconColor: colors.bulb,
 					label: 'ACCEPTED',
 					bgColor: colors.true,
 				},
 				notice: {
 					show: 'in-line',
-					icon: statusIcons.true,
-					iconColor: colors.true,
-					label: 'Your image has a card...',
+					icon: statusIcons.bulb,
+					iconColor: colors.bulb,
+					label: 'Picture bright is accepted!',
+				},
+				data: {
+					debug: '* Bright diff, '+bright+' < '+lowestLightLevelAccepted
 				}
+			}
+
+		}
+
+	}
+
+	/**
+	 * Pretend to be the first step to extrarequirements over detection... I cannot will go so deep with this case!
+	 */
+	const cardDetected = () => {
+		// TODO: Set a card detector!!
+		//var hasCard = getCardDetected(false)
+		return {
+			setStatus: 'accepted',
+			showRetake: true,
+			card: {
+				color: colors.true,
+			},
+			toast: {
+				show: 'in-line',
+				icon: statusIcons.true,
+				iconColor: colors.true,
+				label: 'ACCEPTED',
+				bgColor: colors.true,
+			},
+			notice: {
+				show: 'in-line',
+				icon: statusIcons.true,
+				iconColor: colors.true,
+				label: 'Your image has a card...',
+			},
+			data: {
+				debug: '* A card suposes to be detected here!'
 			}
 		}
 	}
 
+	// EXTRA
+
+	/**
+	 * Gettign the capture bright! 
+	 */
 	const getBright = (debug: boolean = false) => {		
 			
-		if (debug) return getRandomArbitrary(30, 50)
+		if (debug) return getRandomArbitrary(0, 4)
 
 		var img: any = document.getElementById(imageContainerId)
 		var canvas: any = document.createElement('canvas')
@@ -235,13 +272,9 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 		 width = canvas.height = img.naturalHeight || img.offsetHeight || img.height
 		 height = canvas.width = img.naturalWidth || img.offsetWidth || img.width
 	
-		context.drawImage(img, 0, 0)	
-	
+		context.drawImage(img, 0, 0)
 		data = context.getImageData(0, 0, width, height)
-
-		console.log('imageData', data)
-	
-		var res  = getRGBLLevels(data.data, 2, true)
+		var res  = getRGBLLevels(data.data, 2)
 	
 		return res.l
 		
@@ -262,7 +295,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ setAction, restart, loade
 					alt='Your Capture!!!'
 				/>
 				{/*<canvas	ref={captureCanvasRef}></canvas>*/}
-				{attempts === 0 && <Loader params={loader} />}
+				{!showCamera && attempts === 0 && <Loader params={loader} />}
 				<Webcam
 					ref={webcamRef}
 					style={{
