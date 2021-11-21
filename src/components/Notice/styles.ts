@@ -1,15 +1,11 @@
 import styled from 'styled-components'
+import { NoticeProps } from './types'
 
-interface ToastProps {
-  color?: string
-  show: string
-}
-
-export const NoticeStyle = styled.div<ToastProps>`
+export const NoticeStyle = styled.div<NoticeProps>`
   overflow: hidden;
   display: ${p => p.show ? p.show : 'none'};
   margin: 20px 0px;
-  font-size: calc(10px + 2vmin);
+  font-size: calc(10px + 1vmin);
   cursor: 'arrow';
   color: white;
 `

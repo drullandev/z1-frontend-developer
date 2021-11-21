@@ -1,13 +1,10 @@
 import { Styles } from 'react-modal'
 import styled from 'styled-components'
 
-interface CardProps {
-  color?: any
-  height?: number
-  proportion?: number
-}
+import { CardProps } from './types'
 
 export const CardStyle = styled.div<CardProps>`
+  margin-top: 3vh;
   border-radius: 38px;
   border: 4px solid ${p => p.color};
   box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);

@@ -1,17 +1,11 @@
 import styled from 'styled-components'
-
-interface ToastProps {
-  color?: string
-  show: string
-  //height: number
-  //proportion: number
-}
+import { ToastProps } from './types'
 
 export const ToastStyle = styled.div<ToastProps>`
   border-radius: 4px;
   overflow: hidden;
   color: white;
-  background-color: ${p => p.color ?? 'red'};
+  background-color: ${p => p.bgColor ?? 'red'};
   width: 120px;
   display: ${p => p.show ? p.show : 'none'};
   padding: 7px;

@@ -6,14 +6,17 @@ export const colors = {
 	true: '#69CC8B',
 	false: '#C00000',
 	bulb: '#F4F116',
-	grey: '#F3F2F489'
+	grey: '#F3F2F489',
+  moregrey: '#313131', //Based on my testing background!!
+  none: '#00000000',
+  black: '#000000',
 }
 
 // All the modules colors required
 export const statusIcons = {
 	true: faCheckCircle,
 	false: faTimes,
-	lowLight: faLightbulb,
+	bulb: faLightbulb,
   default: faCoffee,
 }
 
@@ -58,6 +61,11 @@ export const getRGBLLevels = (data: any, precision: number = 2, debug: boolean =
   return rgbl
 
 }
+
+const sleep = async (ms: number) => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /*
 export const getBright = (imageContainerId: string, debug: boolean = false) => {
 		

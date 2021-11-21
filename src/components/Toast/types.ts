@@ -1,3 +1,7 @@
 export interface ToastProps {
-  params: any
+  show: string
+  icon?: any
+  iconColor?: string
+  label?: string
+  bgColor: string
 }

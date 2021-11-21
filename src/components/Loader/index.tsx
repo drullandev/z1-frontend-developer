@@ -16,14 +16,14 @@ const Loader: React.FC<LoaderProps> = ({ params }) => {
 				return row.style === 'circle' //TODO: Learn how-to to do better this case than with a predefined cascade of ternary
 					? <circle key={index} cx={row.r + 2} cy={row.r + 2} r={row.r} />
 					: <rect
-							key={index} 
-							x={row.x * params.width}
-							y={row.y * params.height + index * params.margin}
-							width={row.width}
-							rx={params.rx}
-							ry={params.ry}
-							height={params.height}
-						/>
+						key={index}
+						x={row.x * params.width}
+						y={row.y * params.height + index * params.margin}
+						width={row.width}
+						rx={params.rx}
+						ry={params.ry}
+						height={params.height}
+					/>
 			})}
 		</ContentLoader>
 	)

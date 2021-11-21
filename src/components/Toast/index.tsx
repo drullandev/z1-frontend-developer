@@ -10,9 +10,9 @@ import { faCoffee } from '@fortawesome/free-solid-svg-icons'
  * @param ToastProps
  * @returns 
  */
-const MyToast: React.FC<ToastProps> = ({ params  }) =>
-	 <ToastStyle show={params.show} color={`${params.color}`}>
-		<Icon icon={params.iconToast ?? faCoffee} /> {params.label}
+const MyToast: React.FC<ToastProps> = ({ show, label, icon, bgColor }) =>
+	<ToastStyle show={show} bgColor={bgColor}>
+		<Icon icon={icon ?? faCoffee} /> {label}
 	</ToastStyle>
 
 export default MyToast
