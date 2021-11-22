@@ -2,7 +2,7 @@ import styled from 'styled-components'
 
 export const ButtonStyle = styled.button`
   max-width: 33%;
-  min-width: 250px;
+  min-width: 300px;
   padding: 20px;
   //font-family: 'Roboto', sans-serif;
   font-size: calc(12px * 6vw);
@@ -14,7 +14,7 @@ export const ButtonStyle = styled.button`
   background-color: #2f007999;
   transition: all 0.3s ease 0s;
   color: white;
-  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 8px 15px #2f007980;
   box-shadow: 0px 4px 8px #2f007980;
   cursor: pointer;
   outline: none;

@@ -17,7 +17,7 @@ import Loader from '../../components/Loader'
 import Button from '../../components/Button'
 import Document from '../../components/Document'
 
-const debug = true
+const debug = false
 
 const testValidationUrl = 'https://front-exercise.z1.digital/evaluations'
 const documentCaptureChecks = ['bright']
@@ -69,22 +69,21 @@ const DocumentValidator: React.FC = () => {
 			case 'rejected':
 				setSavedCapture(null)
 				setFeedback(action)
-				break;
+				break
 
 			case 'cancel':
 			case 'close':
 				setShowModal(false)
 				setFeedback(
-					{ key: 'pinga', showRetake: false }
+					{ key: 'close', showRetake: false }
 				)
 				break
 
 			default:
-				console.log('- DocumentValidator: default action', action)
-				break
 
 		}
 		setLoading(false)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [action])
 
 	const handleOutputs = (action: any) => {
@@ -174,7 +173,7 @@ const DocumentValidator: React.FC = () => {
 				: <Loader params={LoaderStyle} />
 			}
 		</CardStyle>
-		
+
 		<Notice {...notice as NoticeProps} />
 
 		<div style={{ marginTop: '-186px', width: '100%' }}>
@@ -200,9 +199,11 @@ const DocumentValidator: React.FC = () => {
 			ariaHideApp={false}
 			isOpen={showModal}>
 			<ModalContent>
+				
 				<h1 className='white'>Take a picture</h1>
-				<p className='white'>Fit your ID card inside the frame.</p>
-				<p className='white'>The picture will taken automatically</p>
+				<p className='white' style={{fontSize: '22px', marginTop: '0px'}}>Fit your ID card inside the frame.</p>
+				<p className='white' style={{fontSize: '22px', marginTop: '0px'}}>The picture will taken automatically.</p>
+
 				<Document
 					loader={LoaderStyle}
 					checks={documentCaptureChecks}

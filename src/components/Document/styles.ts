@@ -9,7 +9,8 @@ export const CardStyle = styled.div<CardProps>`
   box-shadow: 0px 4px 8px ${p => p.color};
   //height:  ${p => p.height+'%'};
   min-height:  ${p => p.height ? p.height/6+'%' : 10+'%'};
-  min-width: 450px;
-  max-width:  ${p => (p.height?? 10)*(0.9)+10+'%'};
+  //min-width: 450px;
+  width: 450px;
+  //max-width:  ${p => (p.height?? 10)*(0.9)+10+'%'};
   overflow: hidden;
 `

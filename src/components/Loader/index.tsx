@@ -5,8 +5,8 @@ import './styles'
 
 /**
  * This component allow to set a loader witw less efforts
- * TODO: Requires better explanation! Also is not absolutely mature or definitive feature, only a testing workaround/yagni for the code cience ^^!
- * @param param0
+ * //TODO: Requires better explanation! Also is not absolutely mature or definitive feature, only a testing workaround/yagni for the code cience ^^!
+ * @param LoaderProps
  * @returns 
  */
 const Loader: React.FC<LoaderProps> = ({ params }) => {

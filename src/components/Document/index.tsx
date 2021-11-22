@@ -1,25 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 import { colors, statusIcons } from '../../utils/CoreUtils'
 
 import { StateProps } from '../../containers/DocumentValidator/types'
 import { CardProps } from '../../components/Document/types'
 import { DocumentProps } from './types'
-import { ToastProps } from '../Toast/types'
-import { NoticeProps } from '../Notice/types'
 
 import { CardStyle } from '../../components/Document/styles'
 
 import Webcam from '../Webcam'
 import Button from '../Button'
 
-const debug = true
+const debug = false
 
 const desiredBrightFrom = 1
 const initState = { key: 'start', showRetake: false }
+const videoConstraints = { facingMode: 'user' }
 
 /**
  * This is my feature to take pictures automathically...
- * TODO: Requires better explanation! Also is not absolutely mature or definitive feature, only a testing workaround/yagni for the code cience ^^!
+ * //TODO: Requires better explanation! Also is not absolutely mature or definitive feature, only a testing workaround/yagni for the code cience ^^!
  * @param DocumentProps 
  * @returns 
  */
@@ -30,30 +29,21 @@ const Document: React.FC<DocumentProps> = ({
 	feedback
 }) => {
 
-	const [card, setCard] = useState<CardProps>({ color: colors.grey, height: 50})
-	const [toast, setToast] = useState<ToastProps>()
-	const [notice, setNotice] = useState<NoticeProps>()
-	const [showRetake, setShowRetake] = useState(false)	
-
-	const [loading, setLoading] = useState(false)
-	const [capturing, setCapturing] = useState(false)
-	const [evaluating, setEvaluating] = useState(false)
-
-	const [result, setResult] = useState()
-	
 	const [action, setAction] = useState<StateProps>(initState)
-
+	const [card, setCard] = useState<CardProps>({ color: colors.grey, height: 50 })
 	const [shot, setShot] = useState('')
+	const [loading, setLoading] = useState(false)
+	const [showRetake, setShowRetake] = useState(false)
 
 	useEffect(() => {
-		if(!feedback) return
+		if (!feedback) return
 		setAction(feedback as StateProps)
 	}, [feedback])
 
 	useEffect(() => {
 
 		setLoading(true)
-		if(debug) console.log('- Document: performing action', action)
+		if (debug) console.log('- Document: performing action', action)
 
 		// Common
 		handleOutputs(action)
@@ -63,14 +53,13 @@ const Document: React.FC<DocumentProps> = ({
 
 			case 'shot':
 				setShot(Date.now().toString())
-				break;
+				break
 
-			case 'retake':				
+			case 'retake':
 				setShot(Date.now().toString())
-				break;
+				break
 
 			case 'shotReturn':
-				setEvaluating(true)
 				passRequirements(action.data)
 				setParentAction({
 					key: 'validate',
@@ -78,25 +67,28 @@ const Document: React.FC<DocumentProps> = ({
 						imageSrc: action.data.imageSrc
 					}
 				})
-				setEvaluating(false)	
-				break;
+				break
+
+			case 'error':
+				setShot(Date.now().toString())
+				break
 
 			default:
-				break;
+				
 		}
 
 		setLoading(false)
-
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [action])
 
-	const passRequirements = (data:any) => {
+	const passRequirements = (data: any) => {
 		// Bright parameters to block the images
 		if (checks.includes('bright')) {
-			if(!getTooDark(data)) return
+			if (!getTooDark(data)) return
 		}
 		// Other parameters to block the images
 		if (checks.includes('cardDetected')) {
-			if(!cardDetected(data)) return
+			if (!cardDetected(data)) return
 		}
 	}
 
@@ -129,14 +121,38 @@ const Document: React.FC<DocumentProps> = ({
 				data: extra
 			})
 			return false
+		} else {
+			setAction({
+				key: 'accepted',
+				showRetake: false,
+				card: {
+					color: colors.grey,
+				},
+				toast: {
+					show: 'none',
+					icon: statusIcons.true,
+					iconColor: colors.bulb,
+					label: 'ACCEPTED',
+					bgColor: colors.true,
+				},
+				notice: {
+					show: 'inline',//mostly none
+					icon: statusIcons.bulb,
+					iconColor: colors.bulb,
+					label: 'Picture bright is accepted!',
+				},
+				data: {
+					imasgeSrc: data.imageSrc
+				}
+			})
 		}
 		return true
 	}
 
 	const cardDetected = (data: any) => {
-		// TODO: Set a card detector!!
+		////TODO: Set a card detector!!
 		//var hasCard = getCardDetected(data)
-		setAction({ 
+		setAction({
 			key: 'validate',
 			showRetake: true,
 			card: {
@@ -164,16 +180,20 @@ const Document: React.FC<DocumentProps> = ({
 
 	const handleOutputs = (action: any) => {
 		setCard(action.card)
-		setToast(action.toast)
-		setNotice(action.notice)
 		setShowRetake(action.showRetake)
 	}
 
 	return <>
+
 		<CardStyle {...card} height={60} proportion={1.3}>
-			<Webcam setParentAction={setAction} timeout={3000} shot={shot} 	/>
+			<Webcam
+				shot={shot}
+				timeout={3000}
+				setParentAction={setAction}
+				videoConstraints={videoConstraints}
+			/>
 		</CardStyle>
-			
+
 		{showRetake && <div style={{ position: 'absolute', marginTop: '30vh', width: '100%' }}>
 			<Button
 				type='submit'
@@ -204,7 +224,7 @@ const Document: React.FC<DocumentProps> = ({
 						},
 					})
 				}}
-			/>*
+			/>
 		</div>
 
 		<div style={{ display: false ? 'inline' : 'none' }}>
@@ -259,28 +279,5 @@ setAction({
 	}
 })
 
-	extra.imageSrc = data.imageSrc
-
-	setAction({
-		key: 'accepted',
-		showRetake: false,
-		card: {
-			color: colors.grey,
-		},
-		toast: {
-			show: 'none',
-			icon: statusIcons.true,
-			iconColor: colors.bulb,
-			label: 'ACCEPTED',
-			bgColor: colors.true,
-		},
-		notice: {
-			show: 'inline',//mostly none
-			icon: statusIcons.bulb,
-			iconColor: colors.bulb,
-			label: 'Picture bright is accepted!',
-		},
-		data: extra
-	})
 	return true
 */

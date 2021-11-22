@@ -8,7 +8,6 @@ export const ModalContent = styled.div`
   align-items: center;
   vertical-align: middle;
   height: 100%;
-  margin-top: 10vh;
 `
 
 export const ModalStyle = {

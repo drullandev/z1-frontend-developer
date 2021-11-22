@@ -5,7 +5,7 @@ import { HeaderProps } from './types'
 
 /**
  * A nice BUT absolutely WIP header, only for this test ;)
- * TODO: Requires better explanation! Also is not absolutely mature or definitive feature, only a testing workaround/yagni for the code cience ^^!
+ * //TODO: Requires better explanation! Also is not absolutely mature or definitive feature, only a testing workaround/yagni for the code cience ^^!
  * @param HeaderProps 
  * @returns 
  */

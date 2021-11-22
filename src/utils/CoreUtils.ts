@@ -27,7 +27,7 @@ export const statusIcons = {
  * This function recover the RGB and LigtBright by the image related with an ID
  * - For this cae I want to help to avoid the unnecesary POSTS to the API service,
  *   where the image is being reevaluated with computational costs
- * TODO: Try to move to the utilery!!
+ * //TODO: Try to move to the utilery!!
  * @param imgId string
  * @param precision number between 0-10 where 0 is the minimal precisiton
  * @param debug boolean coomnly used to test a feature ;) thank you!
