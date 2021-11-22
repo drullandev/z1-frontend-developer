@@ -5,7 +5,7 @@ export const colors = {
 	blank: '#00000000',
 	true: '#69CC8B',
 	false: '#C00000',
-  warning: '#D4B939',
+  warning: '#f69400',
 	bulb: '#F4F116',
 	grey: '#F3F2F489',
   moregrey: '#313131', //Based on my testing background!!

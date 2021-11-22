@@ -1,11 +1,11 @@
 import styled from 'styled-components'
 
 export const ButtonStyle = styled.button`
-  width: 45%;
-  max-width: 400px;
+  max-width: 33%;
+  min-width: 250px;
   padding: 20px;
   //font-family: 'Roboto', sans-serif;
-  font-size: calc(3px + 2vmin);
+  font-size: calc(12px * 6vw);
   text-transform: uppercase;
   letter-spacing: 2.5px;
   font-weight: 700;

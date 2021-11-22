@@ -1,137 +1,132 @@
 
 import React, { useEffect, useState } from 'react'
 import Modal from 'react-modal'
-
-import { ModalStyle, CardStyle, LoaderStyle, ModalContent } from './styles'
-import { StateProps, CardProps } from './types'
-
+import { StateProps } from '../../containers/DocumentValidator/types'
+import { CardProps } from '../../components/Document/types'
 import { ToastProps } from '../../components/Toast/types'
 import { NoticeProps } from '../../components/Notice/types'
 
+import { ModalStyle, LoaderStyle, ModalContent } from './styles'
+import { CardStyle } from '../../components/Document/styles'
+
 import { colors, statusIcons } from '../../utils/CoreUtils'
 
-import Button from '../../components/Button/index'
-import Loader from '../../components/Loader/index'
-import Toast from '../../components/Toast/index'
-import Notice from '../../components/Notice/index'
-import Webcam from '../../components/Webcam/index'
+import Toast from '../../components/Toast'
+import Notice from '../../components/Notice'
+import Loader from '../../components/Loader'
+import Button from '../../components/Button'
+import Document from '../../components/Document'
 
 const debug = true
 
 const testValidationUrl = 'https://front-exercise.z1.digital/evaluations'
+const documentCaptureChecks = ['bright']
+
+const initialState = { key: 'start', showRetake: false }
+const cardsDefault = { color: colors.grey }
 
 const DocumentValidator: React.FC = () => {
 
 	const [savedCapture, setSavedCapture] = useState(null)
 
-	const [action, setAction] = useState<StateProps>({ setStatus: 'start', showRetake: false })
+	const [action, setAction] = useState<StateProps>(initialState)
 	const [loading, setLoading] = useState(false)
+	const [feedback, setFeedback] = useState<any>()
+	const [showModal, setShowModal] = useState(false)
 
-	const [card, setCard] = useState<CardProps>()
+	const [card, setCard] = useState<CardProps>(cardsDefault)
 	const [toast, setToast] = useState<ToastProps>()
 	const [notice, setNotice] = useState<NoticeProps>()
 
-	const [showModal, setShowModal] = useState(false)
-	const [showRetake, setShowRetake] = useState(false)
-
-	const [restart, setRestart] = useState(0)
-
 	useEffect(() => {
-
-		if (debug) console.log('- Action register changes!', action)
-		if(!action) return
-
 		setLoading(true)
+		if (debug) console.log('- DocumentValidator: performing action', action)
 
-		handleResult(action)
+		//Common
+		handleOutputs(action)
 
-		switch (action.setStatus) {
+		//Extra
+		switch (action.key) {
 
-			case 'taking':
+			case 'take':
 				setShowModal(true)
 				break
 
-			case 'error':
 			case 'retake':
-				setSavedCapture(null)
-				let rel = restart + 1
-				setRestart(rel)
+				setFeedback(action)
 				break
 
-			case 'accepted':
-				validateDocument()
+			case 'validate':
+				validateDocument(action.data.imageSrc)
 				break
 
 			case 'approved':
-				setSavedCapture(action.data.data)
-				setShowModal(false)
+				setSavedCapture(action.data.imageSrc)
+				setFeedback(action)
+				setAction(action)
 				break
 
-			case 'validated':
-				setSavedCapture(action.data)
+			case 'rejected':
+				setSavedCapture(null)
+				setFeedback(action)
 				break;
 
 			case 'cancel':
 			case 'close':
-				if(action.data){
-					setSavedCapture(action.data)
-				}
 				setShowModal(false)
-				break				
+				setFeedback(
+					{ key: 'pinga', showRetake: false }
+				)
+				break
+
+			default:
+				console.log('- DocumentValidator: default action', action)
+				break
 
 		}
-
 		setLoading(false)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [action])
 
-	// OTHERS
-
-	const handleResult = (action: any) => {		
+	const handleOutputs = (action: any) => {
 		setCard(action.card)
 		setToast(action.toast)
 		setNotice(action.notice)
-		setShowRetake(action.showRetake)
 	}
 
-	/**
-		* This call allows to send the image content in order to be evaluated
-		* @param data
-		*/
-	const validateDocument = () => {
+	const validateDocument = (data: any) => {
 		var myHeaders = new Headers()
 		var myInit = {
 			method: 'POST',
 			headers: myHeaders,
-			body: savedCapture
+			body: data
 		}
 		fetch(testValidationUrl, myInit)
 			.then(res => res.json())
 			.then((res: any) => {
-
 				switch (res.summary.outcome) {
 					case 'Approved':
 						setAction({
-							setStatus: 'approved',
+							key: 'approved',
 							showRetake: false,
 							card: {
 								color: colors.true
 							},
 							toast: {
-								show: 'in-line',//
+								show: 'inline',//
 								label: 'ACCEPTED',
 								icon: statusIcons.true,
 								iconColor: colors.true,
 								bgColor: colors.true,
 							},
 							notice: {
-								show: 'in-line',
+								show: 'inline',
 								icon: statusIcons.true,
 								label: 'Picture taken!',
 								iconColor: colors.true,
 							},
 							data: {
-								debug: res
+								debug: res,
+								imageSrc: data
 							}
 						})
 						break
@@ -139,22 +134,22 @@ const DocumentValidator: React.FC = () => {
 					case 'Too Much Glare':
 					default:
 						setAction({
-							setStatus: 'rejected',
+							key: 'rejected',
 							showRetake: true,
 							card: {
 								color: colors.false,
 							},
 							toast: {
-								show: 'in-line',
+								show: 'inline',
 								icon: statusIcons.false,
 								label: 'REJECTED',
 								bgColor: colors.false,
 							},
 							notice: {
-								show: 'in-line',
-								icon: statusIcons.false,
+								show: 'inline',
+								icon: res.summary.outcome === 'Too Much Glare' ? statusIcons.bulb : statusIcons.false,
 								label: res.summary.outcome,
-								iconColor: colors.false,
+								iconColor: res.summary.outcome === 'Too Much Glare' ? colors.warning : colors.false,
 							},
 							data: {
 								debug: res
@@ -164,14 +159,8 @@ const DocumentValidator: React.FC = () => {
 				}
 			})
 			.catch((err: any) => {
-				callError(err)
+				if (debug) console.log('Call error!!!', err)
 			})
-	}
-
-	// WITH THE SERVICE
-
-	const callError = (err: any) => {
-		if (debug) console.log('Call error!!!', err)
 	}
 
 	return <>
@@ -179,21 +168,23 @@ const DocumentValidator: React.FC = () => {
 		<h1>Scan your ID</h1>
 		<h2>Take a picture. It may take time to validate your personal information.</h2>
 
-		<CardStyle color={colors.grey} height={60} proportion={1.3}>
+		<CardStyle {...card} color={savedCapture ? colors.true : colors.grey} height={60} proportion={1.3}>
 			{savedCapture
-				? <img src={savedCapture} alt='Final Capture' />
+				? <img src={savedCapture} alt='Final Capture' style={{ marginBottom: '-5px' }} />
 				: <Loader params={LoaderStyle} />
 			}
 		</CardStyle>
+		
+		<Notice {...notice as NoticeProps} />
 
 		<div style={{ marginTop: '-186px', width: '100%' }}>
 			<Button
 				disabled={loading}
 				type='submit'
-				label={'TAKE PICTURE'}
+				label={savedCapture ? 'RETAKE PICTURE' : 'TAKE PICTURE'}
 				onClick={() => {
 					setAction({
-						setStatus: 'taking',
+						key: 'take',
 						showRetake: false,
 						card: {
 							color: colors.grey
@@ -212,46 +203,16 @@ const DocumentValidator: React.FC = () => {
 				<h1 className='white'>Take a picture</h1>
 				<p className='white'>Fit your ID card inside the frame.</p>
 				<p className='white'>The picture will taken automatically</p>
-
-				{card && <CardStyle color={card.color} height={50}>
-					<Webcam setAction={setAction} loader={LoaderStyle} restart={restart} checks={['bright']} setSavedCapture={setSavedCapture}/>
-				</CardStyle>}
-
+				<Document
+					loader={LoaderStyle}
+					checks={documentCaptureChecks}
+					setParentAction={setAction}
+					feedback={feedback}
+				/>
+				
 				<Notice {...notice as NoticeProps} />
 
 				<Toast {...toast as ToastProps} />
-
-				{showRetake && <div style={{ position: 'absolute', marginTop: '35%', width: '100%' }}>
-					<Button
-						type='submit'
-						disabled={loading}
-						label={'RETAKE PICTURE'}
-						onClick={() => {
-							setAction({
-								setStatus: 'retake',
-								showRetake: false,
-								card: {
-									color: colors.grey
-								}
-							})
-						}}
-					/>
-				</div>}
-				<div style={{ position: 'absolute', bottom: '10px', marginTop: '35%', width: '100%' }}>
-					<Button
-						disabled={loading}
-						label={action.setStatus === 'approved' ? 'CLOSE' : 'CANCEL'}
-						onClick={() => {
-							setAction({
-								setStatus: 'cancel',
-								showRetake: false,
-								card: {
-									color: colors.grey
-								},
-							})
-						}}
-					/>
-				</div>
 
 			</ModalContent>
 

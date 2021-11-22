@@ -1,8 +1,9 @@
 import React from 'react'
 import { NoticeStyle } from './styles'
 import { NoticeProps } from './types'
-import Icon from '../Icon/index'
 import { faCoffee } from '@fortawesome/free-solid-svg-icons'
+
+import Icon from '../Icon'
 
 /**
  * A simple notice component

@@ -1,7 +1,5 @@
 export interface WebcamCaptureProps {
-	setAction: any
-	restart: any
-	loader: any
-	checks: any
-	setSavedCapture: any
+	timeout: number
+	shot: string
+	setParentAction: any
 }

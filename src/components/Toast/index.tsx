@@ -1,7 +1,7 @@
 import React from 'react'
 import { ToastStyle } from './styles'
 import { ToastProps } from './types'
-import Icon from '../Icon/index'
+import Icon from '../Icon'
 import { faCoffee } from '@fortawesome/free-solid-svg-icons'
 
 /**

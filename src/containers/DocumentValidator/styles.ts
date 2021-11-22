@@ -1,25 +1,14 @@
 import { Styles } from 'react-modal'
 import styled from 'styled-components'
 
-import { CardProps } from './types'
-
-export const CardStyle = styled.div<CardProps>`
-  margin-top: 3vh;
-  border-radius: 38px;
-  border: 4px solid ${p => p.color};
-  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
-  box-shadow: 0px 4px 8px ${p => p.color};
-  height:  ${p => p.height+'%'};
-  width: ${p => (p.height?? 10)*(0.9)+'%'};
-  max-width: 560px;
-  overflow: hidden;
-`
-
 export const ModalContent = styled.div`
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  vertical-align: middle;
+  height: 100%;
+  margin-top: 10vh;
 `
 
 export const ModalStyle = {

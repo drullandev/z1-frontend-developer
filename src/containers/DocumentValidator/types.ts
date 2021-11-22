@@ -1,20 +1,10 @@
 import { ToastProps } from '../../components/Toast/types'
 import { NoticeProps } from '../../components/Notice/types'
-
-/**
- * The nice document frame color changeable with a little bit of style, shadow and so on...
- */
-export interface CardProps {
-	show?: string
-	color?: string
-	height?: number
-	proportion?: number
-}
-
+import { CardProps } from '../../components/Document/types'
 export interface StateProps {
-	setStatus?:
+	key:
 		'start' |
-		'take' 				| 'retake' 		| 'taking' 		| 'expired' |
+		'take' 				| 'retake' 		| //'expired' |
 		'validating' 	| 'error' 		| 'accepted' 	|
 		'rejected' 		| 'approved' 	| 
 		'cancel' 			| string,
