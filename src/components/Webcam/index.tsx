@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { getRGBLLevels, getRandomArbitrary } from '../../utils/CoreUtils'
 import { WebcamCaptureProps } from './types'
 import { StateProps } from '../../containers/DocumentValidator/types'
@@ -34,6 +34,11 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ timeout, shot, setParentA
 	const [showCapture, setShowCapture] = useState(false)
 
 	const [retake, setRetake] = useState('')
+
+	useEffect(() => {
+		console.log('RETAKING')
+		setRetake(Date.now().toString())
+	}, [shot])
 
 	useEffect(() => {
 		if(bright < 0) return
