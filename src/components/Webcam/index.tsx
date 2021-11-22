@@ -1,19 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { getRGBLLevels } from '../../utils/CoreUtils'
+import { getRGBLLevels, getRandomArbitrary } from '../../utils/CoreUtils'
 import { WebcamCaptureProps } from './types'
+import { StateProps } from '../../containers/DocumentValidator/types'
 
 import Webcam from 'react-webcam'
 import Button from '../../components/Button'
 
-import '../../assets/ccard.jpg'
+import '../../assets/ccard.jpg' // o.o
 
 const debug = true
 
 const imageContainerId = 'captureImgRef'
 const videoConstraints = { facingMode: 'user' }
+const initState = { key:'start', showRetake: false }
 
 /**
  * This component was designed to get a webcam with the desired shape
+ * //TODO: Study problems with capture bright detection (fails on load jeje)
  * @param WebcamCaptureProps 
  * @returns 
  */
@@ -22,6 +25,8 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ timeout, shot, setParentA
 	const webcamRef = useRef<Webcam>(null)
 	const captureImgRef = useRef<any>()
 
+	const [action, setAction] = useState<StateProps>(initState)
+
 	const [capture, setCapture] = useState<any>(null)
 	const [bright, setBright] = useState<number>(0)
 
@@ -29,12 +34,6 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ timeout, shot, setParentA
 	const [showCapture, setShowCapture] = useState(false)
 
 	const [retake, setRetake] = useState('')
-
-	useEffect(() => {
-		if(debug) console.log('- WEBCAM: Set initial retake!')
-		let captureTime = Date.now().toString()
-		setRetake(captureTime)			
-	}, [shot])
 
 	useEffect(() => {
 		if(bright < 0) return
@@ -95,7 +94,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ timeout, shot, setParentA
 
 	const getBright = (debug: boolean = true) => {
 
-		setBright(10)  //if (debug) getRandomArbitrary(0, 4)
+		if(debug) getRandomArbitrary(0, 4)
 
 		var img: any = document.getElementById(imageContainerId)
 		var canvas: any = document.createElement('canvas')
@@ -143,7 +142,11 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ timeout, shot, setParentA
 				videoConstraints={videoConstraints}
 			/>
 			{debug && false &&
-				<div style={{ position: 'absolute', alignItems: 'center',  width: '100%' }}>
+				<div style={{
+					position: 'absolute',
+					alignItems: 'center',
+					width: '100%'
+				}}>
 					<Button
 						type='submit'
 						disabled={false}

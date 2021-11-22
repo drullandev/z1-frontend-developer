@@ -16,6 +16,8 @@ code {
   width: auto;
   border-radius: 0px;
   max-width: 560px;
+  min-height: 300px;
+  max-height: 300px;
 }
 
 .MyWebcam video  {
