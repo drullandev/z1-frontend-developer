@@ -1,0 +1,39 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.MyWebcam  {
+  width: auto;
+  border-radius: 0px;
+  max-width: 560px;
+  min-height: 300px;
+  max-height: 300px;
+}
+
+.MyWebcam video  {
+  width: 100%;
+  margin-bottom: -4px;
+}
+
+.cameraModal {
+  text-align: center!important;
+  background-image: url('https://i.pinimg.com/750x/6c/f1/1f/6cf11fd9a65e7af45a9698fdecb29a9e.jpg')!important;
+}
+
+.white {
+  color: white;
+}
+
+.faIcons {
+  margin-right: 6px;
+}
