@@ -1,18 +1,17 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { getRGBLLevels, getRandomArbitrary } from '../../utils/CoreUtils'
+import React, { useState, useEffect, useRef } from 'react'
 import { WebcamCaptureProps } from './types'
-import { StateProps } from '../../containers/DocumentValidator/types'
+import './styles'
+
+import { getRGBLLevels, getRandomArbitrary } from '../../utils/CoreUtils'
+//import { CaptureStyle } from '../Document/styles'
 
 import Webcam from 'react-webcam'
 import Button from '../../components/Button'
+//import Loader from '../../components/Loader'
 
-import '../../assets/ccard.jpg' // o.o
-
-const debug = true
+const debug = false
 
 const imageContainerId = 'captureImgRef'
-const videoConstraints = { facingMode: 'user' }
-const initState = { key:'start', showRetake: false }
 
 /**
  * This component was designed to get a webcam with the desired shape
@@ -20,82 +19,63 @@ const initState = { key:'start', showRetake: false }
  * @param WebcamCaptureProps 
  * @returns 
  */
-const WebcamCapture: React.FC<WebcamCaptureProps> = ({ timeout, shot, setParentAction }) => {
+const WebcamCapture: React.FC<WebcamCaptureProps> = ({
+	timeout,
+	parentShot,
+	setParentAction,
+	videoConstraints
+}) => {
 		
 	const webcamRef = useRef<Webcam>(null)
 	const captureImgRef = useRef<any>()
 
-	const [action, setAction] = useState<StateProps>(initState)
-
+	const [shot, setShot] = useState(Date.now().toString())
 	const [capture, setCapture] = useState<any>(null)
 	const [bright, setBright] = useState<number>(0)
 
 	const [showCamera, setShowCamera] = useState(true)
 	const [showCapture, setShowCapture] = useState(false)
 
-	const [retake, setRetake] = useState('')
-
 	useEffect(() => {
-		console.log('RETAKING')
-		setRetake(Date.now().toString())
-	}, [shot])
-
-	useEffect(() => {
-		if(bright < 0) return
-		if(debug) console.log('- WEBCAM: Bright was seted as '+bright)
-	}, [bright])
-
-	useEffect(() => {
-
-		if(debug) console.log('- WEBCAM: Restarting retake!')
-
 		startCapturing()
-
-		const capturing = setTimeout(()=>{
-
-			const shooting = setTimeout(()=>{
-				
-				// Clearing capture and initialice camera
-				var imageSrc = webcamRef.current as Webcam
-				var screenShot = imageSrc.getScreenshot()
-
-				stopCapturing(screenShot)
-
-			}, timeout/2)
-			
-			return () =>{	clearTimeout(shooting) }
-			
-		}, timeout)
-
-		return () =>{	clearTimeout(capturing)	} 
+		const shooting = setTimeout(()=>{			
+			var imageSrc = webcamRef.current as Webcam
+			var screenShot = imageSrc.getScreenshot()
+			stopCapturing(screenShot)
+		}, timeout/2)
+		return () =>{	clearTimeout(shooting) }
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [retake])
+	}, [shot, parentShot])
 
 	const startCapturing = () => {
-		setShowCamera(true)				
+		if (debug) console.log('- Webcam: The webcam will perform a call in '+timeout+' seconds.')
 		setShowCapture(false)
+		setShowCamera(true)
 		setCapture(undefined)
 	}
 	
 	const stopCapturing = (src: any) => {
-		if(src){
-			setShowCamera(false)				
-			setCapture(src)
-			setShowCapture(true)
-			getBright()
-			setParentAction({
-				key: 'shotReturn',
-				data: {
-					imageSrc: src,
-					bright: bright
-				}
-			})
-		}else{
-			startCapturing()
-		}
+		setShowCamera(false)				
+		setCapture(src)
+		setShowCapture(true)
+		getBright()
+		if (debug) console.log('- Webcam: Capture was done!!')
+		returnCapture(src)
 	}
 
-	// EXTRA
+	const returnCapture = (src: any) => {
+		let data = {
+			timestamp: shot,
+			imageSrc: src,
+			shotTimeout: timeout,
+			bright: bright
+		}
+		if (debug) console.log('- Webcam: returning capture', data)
+		setParentAction({
+			key: 'getShot',
+			data: data
+		})
+	}
 
 	const getBright = (debug: boolean = true) => {
 
@@ -117,7 +97,6 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ timeout, shot, setParentA
 		} catch (error) {
 			setBright(10)
 		}
-
 	}
 
 	return <>
@@ -133,6 +112,8 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ timeout, shot, setParentA
 				src={capture ?? '../assets/ccard.jpg'}
 				alt='Your Capture!!!'
 			/>
+			{/*<Loader params={loaderStyle} />*/}
+			{/*<CaptureStyle id={imageContainerId+'2'} ref={captureImgRef} src={capture} alt='Final Capture'/>*/}
 			{/*<canvas	ref={captureCanvasRef}></canvas>*/}
 			{/*!showCamera && !showCapture && attempts === 0 && <Loader params={loader} />*/}
 			<Webcam
@@ -145,7 +126,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ timeout, shot, setParentA
 				audio={false}
 				screenshotFormat='image/jpeg'
 				videoConstraints={videoConstraints}
-			/>
+			/> 
 			{debug && false &&
 				<div style={{
 					position: 'absolute',
@@ -156,7 +137,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({ timeout, shot, setParentA
 						type='submit'
 						disabled={false}
 						label={'DEBUG RESHOT'}
-						onClick={() => { setRetake(Date.now().toString())	}}
+						onClick={() => { setShot(Date.now().toString())	}}
 					/>
 				</div>
 			}
