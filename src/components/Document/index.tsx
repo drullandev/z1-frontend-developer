@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { colors, statusIcons } from '../../utils/CoreUtils'
 
 import { StateProps } from '../../containers/DocumentValidator/types'
@@ -10,12 +10,12 @@ import { CardStyle } from '../../components/Document/styles'
 import Webcam from '../Webcam'
 import Button from '../Button'
 
-const debug = false
+const debug = true
 
 const desiredBrightFrom = 1
 const initState = { key: 'start', showRetake: false, card: { color: colors.grey }, toast: { show: 'none', bgColor: '' }, notice: { show: 'none' }}
 const videoConstraints = { facingMode: 'user' }
-const retakeTimeout = 2000
+const retakeTimeout = 2400
 const allowedAttempts = 15
 
 /**
@@ -55,6 +55,7 @@ const Document: React.FC<DocumentProps> = ({
 		switch (action.key) {
 
 			case 'shot':
+				cleanOutputs()
 				setShot(Date.now().toString())
 				handleOutputs(action)
 			break
@@ -99,7 +100,7 @@ const Document: React.FC<DocumentProps> = ({
 					let currAttempts = attempts+1
 					setAttempts(currAttempts)
 				}else{
-					if(debug) console.log('- Document: The capture don\'t pass the local requirements. Reload in '+ retakeTimeout*2+' seconds...')
+					if(debug) console.log('- Document: The capture don\'t pass the local requirements. Reload in '+ retakeTimeout/1000+' seconds...')
 					handleOutputs(action)
 					let sleep = setTimeout(()=>{
 						setShot(Date.now().toString())		
@@ -112,23 +113,21 @@ const Document: React.FC<DocumentProps> = ({
 			case 'error':
 				if(debug) console.log('- Document: documents has an error', action)
 				break
-
 			default:
-				//setShot(Date.now().toString())
 				
 		}
 		setLoading(false)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [action])
 
-	const getShot = () =>{
-		
-	}
-
 	const handleOutputs = (action: any) => {
-		//console.log('handleOutputs', action)
 		setCard(action.card)
 		setShowRetake(action.showRetake)
+	}
+
+	const cleanOutputs = () => {
+		setCard({ color: colors.grey, height: 60 })
+		setShowRetake(false)
 	}
 
 	const passRequirements = (data: any) => {
@@ -176,7 +175,7 @@ const Document: React.FC<DocumentProps> = ({
 		} else {
 			if(debug) console.log('- Document: capture is too dark!', extra)
 			setParentAction({
-				key: 'accepted',
+				key: 'lightOk',
 				showRetake: false,
 				card: {
 					color: colors.grey,
@@ -189,7 +188,7 @@ const Document: React.FC<DocumentProps> = ({
 					bgColor: colors.true,
 				},
 				notice: {
-					show: 'inline',//mostly none
+					show: 'inline',
 					icon: statusIcons.bulb,
 					iconColor: colors.bulb,
 					label: 'Picture bright is accepted!',
@@ -243,7 +242,7 @@ const Document: React.FC<DocumentProps> = ({
 			/>
 		</CardStyle>
 
-		{showRetake && <div style={{ position: 'absolute', marginTop: '30vh', width: '100%' }}>
+		{showRetake && <div style={{ position: 'absolute', marginTop: '33vh', width: '100%' }}>
 			<Button
 				type='submit'
 				disabled={loading}

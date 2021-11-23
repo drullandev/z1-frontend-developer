@@ -59,6 +59,7 @@ const DocumentValidator: React.FC = () => {
 				break
 
 			case 'retake':
+				cleanOutputs()
 				setFeedback(action)
 				break
 

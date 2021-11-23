@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { WebcamCaptureProps } from './types'
 import './styles'
 
-import { getRGBLLevels, getRandomArbitrary } from '../../utils/CoreUtils'
+import { getBrightness, getRandomArbitrary } from '../../utils/CoreUtils'
 //import { CaptureStyle } from '../Document/styles'
 
 import Webcam from 'react-webcam'
@@ -58,7 +58,7 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({
 		setShowCamera(false)				
 		setCapture(src)
 		setShowCapture(true)
-		getBright()
+		setTimeout(()=>{getBright(false)},1500)
 		if (debug) console.log('- Webcam: Capture was done!!')
 		returnCapture(src)
 	}
@@ -77,6 +77,10 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({
 		})
 	}
 
+	useCallback(() => {
+		console.log('testo')
+	},[capture])
+
 	const getBright = (debug: boolean = true) => {
 
 		if(debug) getRandomArbitrary(0, 4)
@@ -88,12 +92,12 @@ const WebcamCapture: React.FC<WebcamCaptureProps> = ({
 		var data, width, height
 		width = canvas.height = img.naturalHeight || img.offsetHeight || img.height
 		height = canvas.width = img.naturalWidth || img.offsetWidth || img.width
-		
+
+		context.drawImage(img, 0, 0)
+		data = context.getImageData(0, 0, width, height)
 		try {
-			context.drawImage(img, 0, 0)
-			data = context.getImageData(0, 0, width, height)
-			var res = getRGBLLevels(data.data, 2)
-			setBright(res.l)
+			var res = getBrightness(data.data)
+			setBright(res)
 		} catch (error) {
 			setBright(10)
 		}

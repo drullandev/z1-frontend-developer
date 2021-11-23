@@ -66,35 +66,17 @@ export const getRGBLLevels = (data: any, precision: number = 2, debug: boolean =
 
 }
 
-const sleep = async (ms: number) => {
-  return new Promise(resolve => setTimeout(resolve, ms));
+export const getBrightness = (imageData: any) => {
+  const { data, width, height } = imageData
+  let brightness = 0
+  for (let x = 0; x < width; x++) {
+    for (let y = 0; y < height; y++) {
+      const idx = (x + y * width) * 4
+      brightness += data[idx]
+    }
+  }
+  return (brightness / (width * height) / 255)
 }
-
-/*
-export const getBright = (imageContainerId: string, debug: boolean = false) => {
-		
-  if (debug) return { l: getRandomArbitrary(30, 50) }
-
-  var img: any = document.getElementById(imageContainerId)
-  console.log('img', img)
-
-  var canvas: any = document.createElement('canvas')
-  var context: any = canvas.getContext && canvas.getContext('2d')
-
-  var data, width, height
-   width = canvas.height = img.naturalHeight || img.offsetHeight || img.height
-   height = canvas.width = img.naturalWidth || img.offsetWidth || img.width
-
-  context.drawImage(img, 0, 0)	
-
-  data = context.getImageData(0, 0, width, height)
-
-  var res  = getRGBLLevels(data, 2, true)
-
-  return res.l
-
-}
-*/
 
 export const getRandomArbitrary = (min: number, max: number) => {
   return Math.random() * (max - min) + min;
