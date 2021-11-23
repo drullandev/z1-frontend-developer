@@ -1,6 +1,6 @@
 export interface WebcamCaptureProps {
 	timeout: number
-	shot: string
+	parentShot: string
 	setParentAction: any
 	videoConstraints: any
 }

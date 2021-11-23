@@ -1,5 +1,5 @@
-import { Styles } from 'react-modal'
 import styled from 'styled-components'
+import { Styles } from 'react-modal'
 
 export const ModalContent = styled.div`
   text-align: center;
@@ -9,7 +9,9 @@ export const ModalContent = styled.div`
   vertical-align: middle;
   height: 100%;
 `
-
+/**
+ * Modal shape
+ */
 export const ModalStyle = {
   overlay: {
     position: 'fixed',
@@ -34,26 +36,29 @@ export const ModalStyle = {
   }
 } as Styles
 
-export const LoaderStyle = {
+/**
+ * The style required for simulate a document card
+ */
+export const loaderStyle = {
 	rx: 10,
 	ry: 10,
 	height: 30,
 	margin: 12,
 	width: 10,
 	config: {
-		speed: 4,
+		speed: 2,
 		width: 400,
 		height: 290,
 		viewBox: '0 0 450 200',
-		backgroundColor: '#f3f3f3',
+		backgroundColor: '#DDDAE7',
 		foregroundColor: '#ecebeb',
 	},
 	fields: [
-		{ style: 'rect', x: 10, y: 0, width: 300 },
-		{ style: 'rect', x: 10, y: 1, width: 130 },
-		{ style: 'rect', x: 10, y: 2, width: 80 },
-		{ style: 'rect', x: 58, y: 3, width: 41 },
-    { style: 'rect', x: 58, y: 5, width: 41 },
-		{ style: 'circle', r: 40 }
+		{ style: 'rect', x: 12, y: 0, width: 330 },
+		{ style: 'rect', x: 12, y: 1, width: 165 },
+		{ style: 'rect', x: 12, y: 2, width:110 },
+		{ style: 'rect', x: 2,  y: 4, width: 190 },
+    { style: 'rect', x: 25, y: 4, width: 195 },
+		{ style: 'circle', r: 50 }
 	]
 }

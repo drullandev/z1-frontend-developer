@@ -1,4 +1,4 @@
-import { faCoffee, faCheckCircle, faTimes, faLightbulb, faClock } from '@fortawesome/free-solid-svg-icons'
+import { faCoffee, faCheck, faCheckCircle, faTimes, faLightbulb, faClock } from '@fortawesome/free-solid-svg-icons'
 
 // All the states colors
 export const colors = {
@@ -15,7 +15,8 @@ export const colors = {
 
 // All the modules colors required
 export const statusIcons = {
-	true: faCheckCircle,
+	true: faCheck,
+  trueCircle: faCheckCircle,
 	false: faTimes,
 	bulb: faLightbulb,
   expired: faClock,
