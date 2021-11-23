@@ -13,3 +13,7 @@ export interface CardProps {
 	height?: number
 	proportion?: number
 }
+
+export interface CaptureProps {
+	show: string
+}

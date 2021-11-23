@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { CardProps } from './types'
+import { CardProps, CaptureProps } from './types'
 
 export const CardStyle = styled.div<CardProps>`
   margin-top: 3vh;
@@ -13,4 +13,11 @@ export const CardStyle = styled.div<CardProps>`
   width: 450px;
   //max-width:  ${p => (p.height?? 10)*(0.9)+10+'%'};
   overflow: hidden;
+  max-height: 280px;
+`
+
+export const CaptureStyle = styled.img<CaptureProps>`
+  max-width: 100%;
+  margin-bottom: -5px;
+  display: ${p => p.show ? p.show : 'none'};
 `

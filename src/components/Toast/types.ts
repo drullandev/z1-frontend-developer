@@ -4,4 +4,5 @@ export interface ToastProps {
   iconColor?: string
   label?: string
   bgColor: string
+  zIndex?: number
 }
